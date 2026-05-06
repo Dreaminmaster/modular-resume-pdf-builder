@@ -103,6 +103,8 @@ function isMeaningfullyEmpty() {
 }
 
 function render() { applySettings(); renderNav(); renderOrderControls(); renderEditor(); renderPreview(); saveState(); }
+function updatePreviewOnly() { renderPreview(); saveState(); }
+function updateVisibilityOnly() { renderPreview(); renderNav(); saveState(); }
 function applySettings() {
   document.documentElement.style.setProperty('--primary', state.settings.themeColor);
   document.documentElement.style.setProperty('--font-scale', state.settings.fontScale);
@@ -148,8 +150,8 @@ document.addEventListener('click', (e) => {
 
   handleAction(action, target);
 });
-window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') state.modules[t.dataset.module].visible = t.checked; if (action === 'toggle-item') getItem(t.dataset.module, t.dataset.item).visible = t.checked; if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; } if (action === 'toggle-bullet') getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); } render(); });
-window.addEventListener('input', (e) => { const t = e.target, action = t.dataset.action; if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; render(); } if (action === 'update-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].value = t.value; render(); } });
+window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); } });
+window.addEventListener('input', (e) => { const t = e.target, action = t.dataset.action; if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; updatePreviewOnly(); return; } if (action === 'update-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].value = t.value; updatePreviewOnly(); return; } });
 
 templateSelect.addEventListener('change', () => { state.settings.template = templateSelect.value; render(); });
 languageModeSelect.addEventListener('change', () => { state.settings.languageMode = languageModeSelect.value; render(); });
