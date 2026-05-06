@@ -43,39 +43,46 @@
         </select>
         <div id="template-hint" class="template-hint muted small">适合中文校招 / 通用求职，结构稳重清晰。</div>
 
-        <label class="control-label">语言模式</label>
-        <select id="language-mode" class="input">
-          <option value="zh">中文模式</option>
-          <option value="en">English Mode</option>
-          <option value="bilingual">中英双语标题</option>
-        </select>
-
-        <label class="control-label">主题色</label>
-        <input id="theme-color" type="color" value="#2563eb" class="color-input" />
-
-        <label class="control-label">字体大小</label>
-        <input id="font-scale" type="range" min="0.9" max="1.15" step="0.01" value="1" />
-        <div class="muted small">预览字号缩放：<span id="font-scale-value">100%</span></div>
-
-        <label class="control-label">模块顺序</label>
-        <div class="muted small">支持按钮调整顺序，模板会在此基础上做轻微优化</div>
-        <div id="module-order-list" class="module-order-list"></div>
-
-        <div class="button-grid">
+        <div class="button-grid primary-actions">
           <button id="export-pdf-btn" class="btn btn-primary">一键导出 PDF</button>
           <button id="print-btn" class="btn">浏览器打印导出</button>
-          <button id="export-json-btn" class="btn">导出 JSON</button>
-          <button id="export-jsonresume-btn" class="btn">导出 JSON Resume</button>
-          <label class="btn btn-file">
-            导入 JSON
-            <input id="import-json-input" type="file" accept="application/json" hidden />
-          </label>
-          <label class="btn btn-file">
-            导入 JSON Resume
-            <input id="import-jsonresume-input" type="file" accept="application/json" hidden />
-          </label>
-          <button id="reset-btn" class="btn btn-danger">清空全部数据</button>
         </div>
+
+        <details class="advanced-settings">
+          <summary>高级设置</summary>
+
+          <label class="control-label">语言模式</label>
+          <select id="language-mode" class="input">
+            <option value="zh">中文模式</option>
+            <option value="en">English Mode</option>
+            <option value="bilingual">中英双语标题</option>
+          </select>
+
+          <label class="control-label">主题色</label>
+          <input id="theme-color" type="color" value="#2563eb" class="color-input" />
+
+          <label class="control-label">字体大小</label>
+          <input id="font-scale" type="range" min="0.9" max="1.15" step="0.01" value="1" />
+          <div class="muted small">预览字号缩放：<span id="font-scale-value">100%</span></div>
+
+          <label class="control-label">模块顺序</label>
+          <div class="muted small">支持按钮调整顺序，模板会在此基础上做轻微优化</div>
+          <div id="module-order-list" class="module-order-list"></div>
+
+          <div class="button-grid">
+            <button id="export-json-btn" class="btn">导出 JSON</button>
+            <button id="export-jsonresume-btn" class="btn">导出 JSON Resume</button>
+            <label class="btn btn-file">
+              导入 JSON
+              <input id="import-json-input" type="file" accept="application/json" hidden />
+            </label>
+            <label class="btn btn-file">
+              导入 JSON Resume
+              <input id="import-jsonresume-input" type="file" accept="application/json" hidden />
+            </label>
+            <button id="reset-btn" class="btn btn-danger">清空全部数据</button>
+          </div>
+        </details>
       </div>
     </aside>
 

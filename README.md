@@ -9,14 +9,16 @@ A pure front-end resume builder based on a simple but powerful idea:
 
 ---
 
-## Screenshot Placeholder
+## Screenshots
 
-> Add screenshots here after publishing updated UI.
+> The following screenshot paths are prepared in the repository structure.
+> Replace the placeholder files with real screenshots when available.
 
-Suggested assets:
-- `docs/screenshot-editor.png`
-- `docs/screenshot-templates.png`
-- `docs/screenshot-preview.png`
+![Editor Screenshot Placeholder](docs/screenshot-editor.png)
+![Template Screenshot Placeholder](docs/screenshot-templates.png)
+![Preview Screenshot Placeholder](docs/screenshot-preview.png)
+
+If the images are not added yet, GitHub will simply show broken previews until real screenshot files are committed.
 
 ---
 
@@ -64,12 +66,13 @@ PDF / Print Output
   - Left: module navigation and settings
   - Middle: questionnaire-style editor
   - Right: A4 live preview
+- Beginner 4-step onboarding flow
 - Module collapse/expand
 - Module ordering controls
 - Item move up/down
 - Bullet move up/down
-- Theme color and font scale controls
-- Beginner 4-step flow guide at the top
+- Empty-state guidance for first-time users
+- Theme color and font scale controls in Advanced Settings
 
 ### Templates
 Currently included:
@@ -84,7 +87,7 @@ Currently included:
 - `html2pdf.js` PDF export
 - Browser print fallback
 - Only the resume preview is exported/printed
-- Pagination avoidance rules for sections, entries, and bullets
+- A4-oriented sizing and page-break avoidance rules
 
 ---
 
@@ -115,7 +118,7 @@ If you deploy the project yourself, your data handling still depends on your hos
 
 ## Known Limitations
 
-- JSON Resume support is currently a compatibility mapping, not full schema parity
+- JSON Resume support is still a compatibility mapping, not full schema parity
 - Drag-and-drop sorting is not implemented yet; button-based reordering is used instead
 - Very long content may still span multiple PDF pages depending on browser rendering behavior
 - Different browsers may produce slightly different print/PDF results
@@ -139,6 +142,10 @@ If you deploy the project yourself, your data handling still depends on your hos
 
 ```text
 .
+├── docs/
+│   ├── screenshot-editor.png
+│   ├── screenshot-templates.png
+│   └── screenshot-preview.png
 ├── index.html
 ├── style.css
 ├── app.js
