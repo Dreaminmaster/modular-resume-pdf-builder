@@ -48,7 +48,7 @@ function createLinkItem() { return { id: uid('link'), visible: true, title: crea
 
 function defaultState() {
   return {
-    settings: { template: 'cn-classic', languageMode: 'zh', themeColor: '#2563eb', fontScale: 1, moduleOrder: BASE_MODULE_DEFS.map(x => x.key) },
+    settings: { template: 'cn-classic', languageMode: 'zh', themeColor: '#2563eb', fontScale: 1, moduleOrder: BASE_MODULE_DEFS.map(x => x.key), pdfFileName: '' },
     modules: {
       personalInfo: { visible: true, collapsed: false, fields: {
         name: createField('姓名', '', true, '例如：张三'), title: createField('求职意向', '', true, '例如：机械工程师 / 产品经理 / Data Analyst'), phone: createField('电话', '', true, '例如：138-0000-0000'), email: createField('邮箱', '', true, '例如：name@email.com'), location: createField('所在地', '', true, '例如：上海'), website: createField('个人主页', '', true, '例如：https://portfolio.com'), gender: createField('性别', '', true, '例如：男 / 女'), birth: createField('出生年月', '', true, '例如：2001.08'), political: createField('政治面貌', '', true, '例如：中共党员'), avatar: createField('头像', '', false, '上传头像图片后自动写入')
@@ -113,6 +113,7 @@ function applySettings() {
   currentTemplateName.textContent = TEMPLATE_META[state.settings.template].name;
   currentLanguageName.textContent = LANGUAGE_META[state.settings.languageMode];
   resumePage.className = 'resume-page ' + TEMPLATE_META[state.settings.template].className;
+  document.getElementById('pdf-filename-input').value = state.settings.pdfFileName;
 }
 function renderNav() { moduleNav.innerHTML = ''; moduleDefs().forEach(def => { const mod = state.modules[def.key]; const row = document.createElement('div'); row.className = 'module-nav-item'; row.innerHTML = `<label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><a href="#module-${def.key}">${moduleTitle(def)}</a></label><span class="status-dot ${moduleHasContent(def) ? 'filled' : ''}"></span>`; moduleNav.appendChild(row); }); }
 function renderOrderControls() { moduleOrderList.innerHTML = ''; const defs = moduleDefs(); defs.forEach((def, index) => { const item = document.createElement('div'); item.className = 'order-item'; item.innerHTML = `<span class="order-label">${index + 1}. ${moduleTitle(def)}</span><div class="order-actions"><button class="icon-btn" data-action="move-module-up" data-module="${def.key}" ${index === 0 ? 'disabled' : ''}>↑</button><button class="icon-btn" data-action="move-module-down" data-module="${def.key}" ${index === defs.length - 1 ? 'disabled' : ''}>↓</button></div>`; moduleOrderList.appendChild(item); }); }
@@ -160,17 +161,43 @@ function handleAction(action, target) { const moduleKey = target.dataset.module,
 
 document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') exportPDF(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') exportPDF(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } });
 window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); } });
-window.addEventListener('input', (e) => { const t = e.target, action = t.dataset.action; if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; updatePreviewOnly(); return; } if (action === 'update-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].value = t.value; updatePreviewOnly(); return; } });
+window.addEventListener('input', (e) => {
+  const t = e.target, action = t.dataset.action;
+  if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; updatePreviewOnly(); return; }
+  if (action === 'update-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].value = t.value; updatePreviewOnly(); return; }
+  if (t.id === 'pdf-filename-input') { state.settings.pdfFileName = t.value; saveState(); return; }
+});
 
 templateSelect.addEventListener('change', () => { state.settings.template = templateSelect.value; render(); });
 languageModeSelect.addEventListener('change', () => { state.settings.languageMode = languageModeSelect.value; render(); });
 themeColorInput.addEventListener('input', () => { state.settings.themeColor = themeColorInput.value; render(); });
 fontScaleInput.addEventListener('input', () => { state.settings.fontScale = Number(fontScaleInput.value); render(); });
+function sanitizeFileName(name) {
+  return text(name).replace(/[\/\\:*?"<>|]/g, '_').replace(/\s+/g, '_');
+}
+
+function ensurePdfExtension(name) {
+  return name.toLowerCase().endsWith('.pdf') ? name : `${name}.pdf`;
+}
+
+function buildDefaultPdfFileName() {
+  const personal = state.modules.personalInfo.fields;
+  const name = sanitizeFileName(personal.name.value) || 'Resume';
+  const title = sanitizeFileName(personal.title.value);
+  const templateName = sanitizeFileName(TEMPLATE_META[state.settings.template]?.name || '');
+  const parts = [name, title, templateName].filter(Boolean);
+  return ensurePdfExtension(parts.join('_'));
+}
+
+function getPdfFileName() {
+  const customName = sanitizeFileName(state.settings.pdfFileName || '');
+  if (customName) return ensurePdfExtension(customName);
+  return buildDefaultPdfFileName();
+}
+
 function exportPDF() {
   const element = document.getElementById('resume-page');
-  const nameField = state.modules.personalInfo.fields.name;
-  const cleanName = text(nameField.value);
-  const fileName = cleanName ? `${cleanName}_简历.pdf` : 'Resume.pdf';
+  const fileName = getPdfFileName();
 
   if (typeof html2pdf === 'undefined') {
     alert('PDF 导出库未加载，请使用“浏览器打印导出”。');
