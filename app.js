@@ -158,7 +158,7 @@ function buildMoreMenuHtml() { return `<div class="section-actions" style="displ
 
 function handleAction(action, target) { const moduleKey = target.dataset.module, itemId = target.dataset.item, bulletIndex = Number(target.dataset.bullet); if (action === 'collapse-module') state.modules[moduleKey].collapsed = !state.modules[moduleKey].collapsed; if (action === 'add-item') state.modules[moduleKey].items.push(createItemByModule(moduleKey)); if (action === 'delete-item' && confirm('确认删除这条经历/条目？删除后不可恢复。')) state.modules[moduleKey].items = state.modules[moduleKey].items.filter(i => i.id !== itemId); if (action === 'add-bullet') getItem(moduleKey, itemId).bullets.push(createBullet('', true)); if (action === 'delete-bullet' && confirm('确认删除这个 bullet？')) getItem(moduleKey, itemId).bullets.splice(bulletIndex, 1); if (action === 'move-module-up') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i - 1); state.settings.moduleOrder = order; } if (action === 'move-module-down') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i + 1); state.settings.moduleOrder = order; } if (action === 'move-item-up') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i - 1); } if (action === 'move-item-down') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i + 1); } if (action === 'move-bullet-up') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex - 1); if (action === 'move-bullet-down') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex + 1); if (action === 'clear-avatar') { const avatar = state.modules.personalInfo.fields.avatar; avatar.value = ''; avatar.visible = false; } render(); }
 
-document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') document.getElementById('export-pdf-btn').click(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') document.getElementById('export-pdf-btn').click(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } });
+document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') exportPDF(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') exportPDF(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } });
 window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); } });
 window.addEventListener('input', (e) => { const t = e.target, action = t.dataset.action; if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; updatePreviewOnly(); return; } if (action === 'update-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].value = t.value; updatePreviewOnly(); return; } });
 
@@ -166,8 +166,46 @@ templateSelect.addEventListener('change', () => { state.settings.template = temp
 languageModeSelect.addEventListener('change', () => { state.settings.languageMode = languageModeSelect.value; render(); });
 themeColorInput.addEventListener('input', () => { state.settings.themeColor = themeColorInput.value; render(); });
 fontScaleInput.addEventListener('input', () => { state.settings.fontScale = Number(fontScaleInput.value); render(); });
-document.getElementById('print-btn').addEventListener('click', () => window.print());
-document.getElementById('export-pdf-btn').addEventListener('click', () => { const filename = text(state.modules.personalInfo.fields.name.value) ? text(state.modules.personalInfo.fields.name.value) + '_简历.pdf' : 'Resume.pdf'; html2pdf().set({ margin: [0,0,0,0], filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy', 'avoid-all'], avoid: ['.entry', '.resume-section', 'li', '.resume-header'] } }).from(resumePage).save(); });
+function exportPDF() {
+  const element = document.getElementById('resume-page');
+  const nameField = state.modules.personalInfo.fields.name;
+  const fileName = text(nameField.value) ? `${text(nameField.value)}_简历.pdf` : 'Resume.pdf';
+
+  if (typeof html2pdf === 'undefined') {
+    alert('PDF 导出库未加载，请使用浏览器打印导出。');
+    return;
+  }
+
+  const options = {
+    margin: 0,
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      scrollY: 0,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    },
+    pagebreak: {
+      mode: ['avoid-all', 'css', 'legacy'],
+      avoid: ['.entry', '.resume-section', 'li', '.resume-header']
+    }
+  };
+
+  html2pdf().set(options).from(element).save();
+}
+
+function printResume() {
+  window.print();
+}
+
+document.getElementById('print-btn').addEventListener('click', printResume);
+document.getElementById('export-pdf-btn').addEventListener('click', exportPDF);
 document.getElementById('export-json-btn').addEventListener('click', () => { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'modular-resume-data.json'; a.click(); URL.revokeObjectURL(url); });
 document.getElementById('export-jsonresume-btn').addEventListener('click', () => { const blob = new Blob([JSON.stringify(exportJsonResume(), null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'resume.json'; a.click(); URL.revokeObjectURL(url); });
 document.getElementById('import-json-input').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { state = deepMerge(defaultState(), JSON.parse(await file.text())); state.settings.moduleOrder = normalizeOrder(state.settings.moduleOrder); if (!state.settings.languageMode) state.settings.languageMode = 'zh'; render(); alert('JSON 导入成功。'); } catch { alert('导入失败：JSON 格式不正确。'); } e.target.value = ''; });
