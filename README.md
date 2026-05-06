@@ -11,14 +11,14 @@ A pure front-end resume builder based on a simple but powerful idea:
 
 ## Screenshots
 
-> The following screenshot paths are prepared in the repository structure.
-> Replace the placeholder files with real screenshots when available.
+### Editor
+![Editor Screenshot](docs/screenshot-editor.png)
 
-![Editor Screenshot Placeholder](docs/screenshot-editor.png)
-![Template Screenshot Placeholder](docs/screenshot-templates.png)
-![Preview Screenshot Placeholder](docs/screenshot-preview.png)
+### Template & Settings Panel
+![Template Screenshot](docs/screenshot-templates.png)
 
-If the images are not added yet, GitHub will simply show broken previews until real screenshot files are committed.
+### Live Preview
+![Preview Screenshot](docs/screenshot-preview.png)
 
 ---
 

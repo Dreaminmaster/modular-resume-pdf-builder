@@ -1,0 +1,38 @@
+{
+  "settings": {
+    "template": "campus",
+    "languageMode": "zh",
+    "themeColor": "#2563eb",
+    "fontScale": 1,
+    "moduleOrder": ["personalInfo","education","internships","projects","research","awards","achievements","skills","certificates","languages","summary","links"]
+  },
+  "modules": {
+    "personalInfo": {
+      "visible": true,
+      "collapsed": false,
+      "fields": {
+        "name": {"label":"姓名","value":"张三","visible":true,"placeholder":"例如：张三"},
+        "title": {"label":"求职意向","value":"机器人算法 / 工程技术岗位","visible":true,"placeholder":""},
+        "phone": {"label":"电话","value":"138-0000-0000","visible":true,"placeholder":""},
+        "email": {"label":"邮箱","value":"demo@example.com","visible":true,"placeholder":""},
+        "location": {"label":"所在地","value":"上海","visible":true,"placeholder":""},
+        "website": {"label":"个人主页","value":"https://example.com","visible":true,"placeholder":""},
+        "gender": {"label":"性别","value":"男","visible":true,"placeholder":""},
+        "birth": {"label":"出生年月","value":"2001.08","visible":true,"placeholder":""},
+        "political": {"label":"政治面貌","value":"中共党员","visible":true,"placeholder":""},
+        "avatar": {"label":"头像","value":"","visible":false,"placeholder":""}
+      }
+    },
+    "education": {"visible":true,"collapsed":false,"items":[{"id":"e1","visible":true,"school":{"label":"学校","value":"同济大学","visible":true},"degree":{"label":"学历/学位","value":"硕士","visible":true},"major":{"label":"专业","value":"控制科学与工程","visible":true},"date":{"label":"时间","value":"2023.09 - 2026.06","visible":true},"location":{"label":"地点","value":"上海","visible":true},"bullets":[{"value":"研究方向：机器人感知与控制、SLAM、轨迹规划。","visible":true}]}]},
+    "internships": {"visible":true,"collapsed":false,"items":[{"id":"i1","visible":true,"name":{"label":"名称","value":"智能制造工程实习","visible":true},"role":{"label":"岗位/角色","value":"算法工程实习生","visible":true},"org":{"label":"单位/平台","value":"某工业自动化公司","visible":true},"date":{"label":"时间","value":"2024.07 - 2024.09","visible":true},"location":{"label":"地点","value":"上海","visible":true},"bullets":[{"value":"参与生产线视觉检测与轨迹优化模块开发，负责数据清洗、特征抽取、模型评估与误差归因分析，并与控制工程师共同联调，推动方案从实验环境逐步迁移至小规模真实产线测试环境。","visible":true},{"value":"梳理检测链路中的关键瓶颈，提出多阶段推理与缓存策略，在保持精度稳定的前提下显著提升处理吞吐能力，并输出完整测试报告、复盘文档与部署建议。","visible":true}]}]},
+    "projects": {"visible":true,"collapsed":false,"items":[{"id":"p1","visible":true,"name":{"label":"名称","value":"多传感器融合移动机器人项目","visible":true},"role":{"label":"岗位/角色","value":"项目负责人","visible":true},"org":{"label":"单位/平台","value":"实验室 / 竞赛项目","visible":true},"date":{"label":"时间","value":"2024.01 - 2025.03","visible":true},"location":{"label":"地点","value":"上海","visible":true},"bullets":[{"value":"负责系统总体方案设计，整合激光雷达、IMU、深度相机与轮速里程计信息，完成环境感知、地图构建、定位跟踪、路径规划与避障控制的完整技术链路设计，并建立从仿真到实机的验证闭环。","visible":true},{"value":"主导撰写技术文档、阶段汇报与实验复盘，针对复杂场景下的漂移、遮挡、动态障碍和回环检测失败问题进行多轮调参和算法优化，使系统在长时间运行场景中保持较高稳定性与可复现性。","visible":true},{"value":"组织团队分工协作，推进软硬件接口规范化、日志结构统一和评测指标体系建设，减少联调沟通成本，提高项目推进节奏与交付质量。","visible":true}]}]},
+    "research": {"visible":true,"collapsed":false,"items":[{"id":"r1","visible":true,"name":{"label":"名称","value":"机器人末端执行器优化课题","visible":true},"role":{"label":"岗位/角色","value":"研究成员","visible":true},"org":{"label":"单位/平台","value":"高校实验室","visible":true},"date":{"label":"时间","value":"2024.03 - 2025.01","visible":true},"location":{"label":"地点","value":"上海","visible":true},"bullets":[{"value":"开展多轮结构设计、实验验证与性能对比，对关键部件形变量、抓取稳定性、材料选型和动态响应特征进行系统评估，并结合实验结果提出针对性的优化建议。","visible":true}]}]},
+    "awards": {"visible":true,"collapsed":false,"items":[{"id":"a1","visible":true,"title":{"label":"奖项名称","value":"全国大学生智能车竞赛一等奖","visible":true},"issuer":{"label":"颁发单位","value":"竞赛组委会","visible":true},"date":{"label":"时间","value":"2024.08","visible":true},"bullets":[{"value":"负责感知与控制链路设计。","visible":true}]}]},
+    "achievements": {"visible":true,"collapsed":false,"items":[{"id":"ac1","visible":true,"title":{"label":"成果名称","value":"论文《A Robust Fusion Framework for Mobile Robotics》","visible":true},"type":{"label":"类型","value":"论文","visible":true},"date":{"label":"时间","value":"2025.02","visible":true},"status":{"label":"状态","value":"Under Review","visible":true},"bullets":[{"value":"负责算法设计、实验搭建与论文写作。","visible":true}]}]},
+    "skills": {"visible":true,"collapsed":false,"items":[{"id":"s1","visible":true,"category":{"label":"技能分类","value":"编程 / 工具","visible":true},"content":{"label":"技能内容","value":"Python、C++、ROS、OpenCV、PyTorch、MATLAB、SolidWorks","visible":true},"bullets":[]}]},
+    "certificates": {"visible":true,"collapsed":false,"items":[{"id":"c1","visible":true,"name":{"label":"证书名称","value":"CET-6","visible":true},"issuer":{"label":"颁发机构","value":"教育部考试中心","visible":true},"date":{"label":"时间","value":"2022.12","visible":true},"bullets":[]}]},
+    "languages": {"visible":true,"collapsed":false,"items":[{"id":"l1","visible":true,"language":{"label":"语言","value":"英语","visible":true},"level":{"label":"水平","value":"CET-6 / 技术文档阅读与写作","visible":true},"bullets":[]}]},
+    "summary": {"visible":true,"collapsed":false,"fields":{"summary":{"label":"自我评价","value":"聚焦机器人感知、定位与控制方向，具备从算法设计、实验验证到文档沉淀的完整项目经验。能够在跨学科协作环境中推进复杂系统落地。","visible":true}}},
+    "links": {"visible":true,"collapsed":false,"items":[{"id":"lk1","visible":true,"title":{"label":"链接名称","value":"GitHub","visible":true},"url":{"label":"链接地址","value":"https://github.com/example","visible":true},"desc":{"label":"说明","value":"机器人项目代码与技术文档","visible":true},"bullets":[]}]}
+  }
+}
