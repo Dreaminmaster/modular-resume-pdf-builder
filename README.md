@@ -1,87 +1,141 @@
 # Modular Resume PDF Builder
 
-一个纯前端的模块化简历生成器：**信息池 + 勾选显示 + 模板排版 + PDF 导出**。
+A pure front-end resume builder based on a simple but powerful idea:
 
-在线体验：
-- GitHub Pages: https://dreaminmaster.github.io/modular-resume-pdf-builder/
-- GitHub Repo: https://github.com/Dreaminmaster/modular-resume-pdf-builder
+**Fill the full information pool → choose what to show → switch templates → export PDF**
 
----
-
-## 项目定位
-
-这不是“固定模板填空器”，而是一个更灵活的模块化简历工具：
-
-1. 先填写完整**信息池**
-2. 再勾选要显示的字段 / 经历 / bullet
-3. 最后切换不同**模板排版**
-4. 导出 PDF 或打印
-
-核心原则：
-- **取消勾选不是删除**
-- **模板只读 visible 内容**
-- **最终简历 = 被勾选内容 + 当前模板排版**
+- Live demo: https://dreaminmaster.github.io/modular-resume-pdf-builder/
+- Repository: https://github.com/Dreaminmaster/modular-resume-pdf-builder
 
 ---
 
-## 主要特性
+## Screenshot Placeholder
 
-### 数据与显示分离
-- 每个字段都包含 `label / value / visible`
-- 每个经历都可整体控制显示 / 隐藏
-- 每个 bullet 也能单独勾选
-- 取消勾选后内容仍保留在本地信息池中
+> Add screenshots here after publishing updated UI.
 
-### 实时预览
-- 左侧模块导航
-- 中间问卷式编辑区
-- 右侧 A4 简历实时预览
-- 仅渲染 `visible === true && value 非空` 的内容
-
-### 模板系统
-当前已支持 6 套模板：
-- 经典单栏中文模板
-- 英文极简模板
-- 工程技术模板
-- 校招双栏模板
-- 产品经理模板
-- 学术 CV 模板
-
-### 导出能力
-- `html2pdf.js` 一键导出 PDF
-- `window.print()` 浏览器打印导出
-- 自动隐藏编辑器，仅导出右侧简历区域
-- 增强分页避免规则，尽量减少 section / entry / bullet 被切断
-
-### 本地化与数据管理
-- `localStorage` 自动保存
-- 导入 / 导出自定义 JSON
-- 导入 / 导出 **JSON Resume**
-- 无需后端，无需登录
-
-### 交互增强
-- 模块顺序调整
-- 条目上移 / 下移
-- bullet 上移 / 下移
-- 头像上传与显示控制
-- 主题色调整
-- 字体大小调整
-- 中文 / English / 双语标题模式
+Suggested assets:
+- `docs/screenshot-editor.png`
+- `docs/screenshot-templates.png`
+- `docs/screenshot-preview.png`
 
 ---
 
-## 技术栈
+## Core Philosophy
 
-- HTML
-- CSS
-- JavaScript
-- html2pdf.js
+This project is **not** a fixed-template resume form.
 
-无构建工具，复制后即可直接打开 `index.html` 使用。
+Instead, it follows four rules:
+
+1. **Information Pool First**  
+   Users can keep all resume content in one place.
+2. **Visibility Is Not Deletion**  
+   Unchecking content only hides it; it does not remove the data.
+3. **Templates Read Visible Content Only**  
+   Rendering filters fields/items/bullets using visibility and non-empty values.
+4. **Layout Is Separate from Data**  
+   Templates change presentation, not the underlying resume data.
+
+### Concept Diagram
+
+```text
+Information Pool
+   ↓
+Visibility Controls
+   ↓
+Template Layout
+   ↓
+PDF / Print Output
+```
 
 ---
 
-## 项目结构
+## Features
+
+### Data Model
+- Field-level `label / value / visible`
+- Item-level visibility
+- Bullet-level visibility
+- Local-only storage via `localStorage`
+- JSON import/export
+- JSON Resume compatible import/export
+
+### Editing Experience
+- Three-column layout
+  - Left: module navigation and settings
+  - Middle: questionnaire-style editor
+  - Right: A4 live preview
+- Module collapse/expand
+- Module ordering controls
+- Item move up/down
+- Bullet move up/down
+- Theme color and font scale controls
+- Beginner 4-step flow guide at the top
+
+### Templates
+Currently included:
+- Classic Chinese Single Column
+- English Minimal
+- Engineering
+- Campus Two-Column
+- Product Manager
+- Academic CV
+
+### Export
+- `html2pdf.js` PDF export
+- Browser print fallback
+- Only the resume preview is exported/printed
+- Pagination avoidance rules for sections, entries, and bullets
+
+---
+
+## Usage Flow
+
+1. Fill in your full information pool
+2. Uncheck fields/items/bullets you do not want to show
+3. Choose a template
+4. Export PDF
+
+This means one dataset can generate multiple resume versions.
+
+---
+
+## Privacy
+
+This project is designed to be privacy-friendly:
+
+- No backend
+- No account system
+- No network storage for resume data
+- Data is saved in the browser only
+- Files are exported locally by the user
+
+If you deploy the project yourself, your data handling still depends on your hosting environment, but the application itself does not require a server database.
+
+---
+
+## Known Limitations
+
+- JSON Resume support is currently a compatibility mapping, not full schema parity
+- Drag-and-drop sorting is not implemented yet; button-based reordering is used instead
+- Very long content may still span multiple PDF pages depending on browser rendering behavior
+- Different browsers may produce slightly different print/PDF results
+- Mobile experience is usable but desktop-first
+
+---
+
+## Roadmap
+
+- Better JSON Resume schema coverage
+- Drag-and-drop sorting
+- More overseas resume templates
+- Better multi-page export control
+- Richer academic publication fields
+- Template thumbnail picker
+- React / Vue refactor in the future
+
+---
+
+## Project Structure
 
 ```text
 .
@@ -93,104 +147,27 @@
 
 ---
 
-## 使用方式
+## Chinese Notes / 中文说明
 
-### 本地打开
-直接双击 `index.html` 即可。
+### 项目简介
+这是一个纯前端模块化简历生成器，核心不是“固定模板填空”，而是：
 
-### 推荐工作流
-1. 填写完整简历信息池
-2. 取消不想显示的字段 / 经历 / bullet
-3. 切换不同模板观察效果
-4. 导出 PDF 或打印
+1. 先填写完整信息池
+2. 再勾选显示内容
+3. 最后切换模板导出
 
----
+### 隐私说明
+- 不需要后端
+- 不需要账号
+- 数据默认保存在浏览器本地
+- 不会自动上传到服务器
 
-## 数据结构示例
-
-### 字段结构
-
-```json
-{
-  "label": "邮箱",
-  "value": "xxx@email.com",
-  "visible": true
-}
-```
-
-### 经历结构
-
-```json
-{
-  "id": "internship_001",
-  "visible": true,
-  "company": { "label": "公司名称", "value": "", "visible": true },
-  "position": { "label": "岗位", "value": "", "visible": true },
-  "date": { "label": "时间", "value": "", "visible": true },
-  "bullets": [
-    { "value": "完成生产流程优化", "visible": true }
-  ]
-}
-```
-
----
-
-## JSON Resume 兼容
-
-本项目参考了 JSON Resume 的思想：
-- 数据结构标准化
-- 数据与主题分离
-
-目前已支持：
-- 导出为 JSON Resume 风格数据
-- 从 JSON Resume 导入并映射到本项目的信息池
-
-说明：
-- 当前是**兼容映射**，不是 100% 全字段无损双向同步
-- 后续可继续增强对更多 schema 字段的支持
-
----
-
-## 模板理念
-
-模板只负责：
-- 排版
-- 模块顺序微调
-- 字体风格
-- 视觉层次
-- 中英文呈现方式
-
-模板**不修改原始数据本身**。
-
----
-
-## 部署
-
-适合部署到：
-- GitHub Pages
-- Cloudflare Pages
-- Netlify
-- 任意静态托管平台
-
-本项目当前已部署到 GitHub Pages：
-https://dreaminmaster.github.io/modular-resume-pdf-builder/
-
----
-
-## Roadmap
-
-- [x] 模块化信息池
-- [x] 字段 / 条目 / bullet 可见性控制
-- [x] 多模板系统
-- [x] PDF 导出
-- [x] JSON 导入 / 导出
-- [x] JSON Resume 兼容导入 / 导出
-- [x] 中英 / 双语标题模式
-- [ ] 更完整的 JSON Resume schema 对齐
-- [ ] 拖拽排序
-- [ ] 更多海外简历模板
-- [ ] 学术成果更细粒度字段
-- [ ] React / Vue 重构版本
+### 当前重点能力
+- 模块化信息池
+- 字段 / 条目 / bullet 级 visible 控制
+- 多模板排版
+- PDF 导出
+- JSON Resume 兼容导入导出
 
 ---
 

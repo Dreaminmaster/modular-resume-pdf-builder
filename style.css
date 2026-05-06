@@ -17,6 +17,17 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 body { min-height: 100vh; }
 a { color: inherit; }
 
+.flow-guide {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 16px 20px 0;
+}
+.flow-step {
+  background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 10px; font-size: 14px;
+}
+.flow-step span {
+  width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 999px; background: color-mix(in srgb, var(--primary) 12%, white); color: var(--primary); font-weight: 700;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 300px minmax(360px, 1fr) minmax(780px, 860px);
@@ -212,12 +223,14 @@ input[type="range"] { width: 100%; }
 .template-academic .summary, .template-academic .entry-subtitle { color: #334155; }
 
 @media (max-width: 1500px) {
+  .flow-guide { grid-template-columns: repeat(2, 1fr); }
   .app-shell { grid-template-columns: 280px 1fr; }
   .preview-panel { grid-column: 1 / -1; }
   .sidebar, .editor { position: static; max-height: none; }
 }
 
 @media (max-width: 900px) {
+  .flow-guide { grid-template-columns: 1fr; padding: 12px 12px 0; }
   .app-shell { grid-template-columns: 1fr; padding: 12px; }
   .resume-page { width: 100%; min-height: auto; }
   .grid-2, .grid-3, .template-campus { grid-template-columns: 1fr; }
