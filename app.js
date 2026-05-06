@@ -1,6 +1,6 @@
-const STORAGE_KEY = 'modular_resume_builder_v1';
+const STORAGE_KEY = 'modular_resume_builder_v2';
 
-const MODULE_DEFS = [
+const BASE_MODULE_DEFS = [
   { key: 'personalInfo', label: '基本信息', type: 'fields' },
   { key: 'education', label: '教育背景', type: 'list', itemLabel: '教育经历' },
   { key: 'internships', label: '实习经历', type: 'list', itemLabel: '实习经历' },
@@ -108,7 +108,12 @@ function createLinkItem() {
 
 function defaultState() {
   return {
-    settings: { template: 'cn-classic', themeColor: '#2563eb', fontScale: 1 },
+    settings: {
+      template: 'cn-classic',
+      themeColor: '#2563eb',
+      fontScale: 1,
+      moduleOrder: BASE_MODULE_DEFS.map(x => x.key)
+    },
     modules: {
       personalInfo: {
         visible: true,
@@ -121,7 +126,8 @@ function defaultState() {
           website: createField('个人主页', '', true, '例如：https://portfolio.com'),
           gender: createField('性别', '', true, '例如：男 / 女'),
           birth: createField('出生年月', '', true, '例如：2001.08'),
-          political: createField('政治面貌', '', true, '例如：中共党员')
+          political: createField('政治面貌', '', true, '例如：中共党员'),
+          avatar: createField('头像', '', false, '上传头像图片后自动写入')
         },
         collapsed: false
       },
@@ -147,9 +153,9 @@ function defaultState() {
 }
 
 let state = loadState();
-
 const editorContent = document.getElementById('editor-content');
 const moduleNav = document.getElementById('module-nav');
+const moduleOrderList = document.getElementById('module-order-list');
 const resumePage = document.getElementById('resume-page');
 const templateSelect = document.getElementById('template-select');
 const currentTemplateName = document.getElementById('current-template-name');
@@ -161,16 +167,17 @@ const pageWarning = document.getElementById('page-warning');
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    return deepMerge(defaultState(), JSON.parse(raw));
+    const base = defaultState();
+    if (!raw) return base;
+    const merged = deepMerge(base, JSON.parse(raw));
+    merged.settings.moduleOrder = normalizeOrder(merged.settings.moduleOrder);
+    return merged;
   } catch (e) {
     console.warn('load failed', e);
     return defaultState();
   }
 }
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function deepMerge(base, extra) {
   if (Array.isArray(base)) return Array.isArray(extra) ? extra : base;
   if (typeof base !== 'object' || base === null) return extra ?? base;
@@ -180,6 +187,16 @@ function deepMerge(base, extra) {
     else output[key] = extra[key];
   }
   return output;
+}
+function normalizeOrder(order) {
+  const all = BASE_MODULE_DEFS.map(x => x.key);
+  const valid = Array.isArray(order) ? order.filter(k => all.includes(k)) : [];
+  all.forEach(k => { if (!valid.includes(k)) valid.push(k); });
+  return valid;
+}
+function moduleDefs() {
+  const order = normalizeOrder(state.settings.moduleOrder);
+  return order.map(key => BASE_MODULE_DEFS.find(x => x.key === key)).filter(Boolean);
 }
 function text(v) { return (v || '').toString().trim(); }
 function isFieldVisible(field) { return !!field && field.visible && text(field.value) !== ''; }
@@ -194,6 +211,7 @@ function moduleHasContent(modDef) {
 function render() {
   applySettings();
   renderNav();
+  renderOrderControls();
   renderEditor();
   renderPreview();
   saveState();
@@ -212,7 +230,7 @@ function applySettings() {
 
 function renderNav() {
   moduleNav.innerHTML = '';
-  MODULE_DEFS.forEach(def => {
+  moduleDefs().forEach(def => {
     const mod = state.modules[def.key];
     const row = document.createElement('div');
     row.className = 'module-nav-item';
@@ -227,14 +245,30 @@ function renderNav() {
   });
 }
 
+function renderOrderControls() {
+  moduleOrderList.innerHTML = '';
+  const defs = moduleDefs();
+  defs.forEach((def, index) => {
+    const item = document.createElement('div');
+    item.className = 'order-item';
+    item.innerHTML = `
+      <span class="order-label">${index + 1}. ${def.label}</span>
+      <div class="order-actions">
+        <button class="icon-btn" data-action="move-module-up" data-module="${def.key}" ${index === 0 ? 'disabled' : ''}>↑</button>
+        <button class="icon-btn" data-action="move-module-down" data-module="${def.key}" ${index === defs.length - 1 ? 'disabled' : ''}>↓</button>
+      </div>
+    `;
+    moduleOrderList.appendChild(item);
+  });
+}
+
 function renderEditor() {
   editorContent.innerHTML = '';
-  MODULE_DEFS.forEach(def => {
+  moduleDefs().forEach(def => {
     const mod = state.modules[def.key];
     const card = document.createElement('section');
     card.className = 'module-card';
     card.id = 'module-' + def.key;
-
     const bodyClass = mod.collapsed ? 'module-body collapsed' : 'module-body';
     card.innerHTML = `
       <div class="module-header">
@@ -252,10 +286,10 @@ function renderEditor() {
       </div>
       <div class="${bodyClass}"></div>
     `;
-
     const body = card.querySelector('.module-body');
+    if (def.key === 'personalInfo') body.appendChild(renderAvatarControls());
     if (def.type === 'fields') {
-      body.appendChild(renderFieldsBlock(def.key, mod.fields));
+      body.appendChild(renderFieldsBlock(def.key, mod.fields, def.key === 'personalInfo' ? ['avatar'] : []));
     } else {
       mod.items.forEach((item, index) => body.appendChild(renderItemCard(def.key, item, index, def.itemLabel)));
       const actions = document.createElement('div');
@@ -267,11 +301,32 @@ function renderEditor() {
   });
 }
 
-function renderFieldsBlock(moduleKey, fields) {
+function renderAvatarControls() {
   const wrap = document.createElement('div');
-  const keys = Object.keys(fields);
-  const gridClass = keys.length >= 4 ? 'grid-2' : '';
-  if (gridClass) wrap.classList.add(gridClass);
+  const avatarField = state.modules.personalInfo.fields.avatar;
+  const preview = avatarField.value
+    ? `<img class="avatar-preview" src="${avatarField.value}" alt="avatar preview">`
+    : `<div class="avatar-placeholder">无头像</div>`;
+  wrap.className = 'field-row avatar-uploader';
+  wrap.innerHTML = `
+    <div class="field-top">
+      <input class="checkbox" type="checkbox" ${avatarField.visible ? 'checked' : ''} data-action="toggle-field" data-module="personalInfo" data-field="avatar">
+      <label class="field-label">头像</label>
+    </div>
+    ${preview}
+    <div class="section-actions">
+      <label class="btn btn-file">上传头像<input id="avatar-input" type="file" accept="image/*" hidden></label>
+      <button class="btn" data-action="clear-avatar">清除头像</button>
+    </div>
+    <div class="field-meta">头像保存在本地浏览器 localStorage 中。英文极简模板默认不显示头像。</div>
+  `;
+  return wrap;
+}
+
+function renderFieldsBlock(moduleKey, fields, exclude = []) {
+  const wrap = document.createElement('div');
+  const keys = Object.keys(fields).filter(k => !exclude.includes(k));
+  if (keys.length >= 4) wrap.classList.add('grid-2');
   keys.forEach(fieldKey => wrap.appendChild(renderField(moduleKey, null, fieldKey, fields[fieldKey])));
   return wrap;
 }
@@ -279,15 +334,15 @@ function renderFieldsBlock(moduleKey, fields) {
 function renderField(moduleKey, itemId, fieldKey, field) {
   const row = document.createElement('div');
   row.className = 'field-row';
+  const isLong = fieldKey === 'summary' || fieldKey === 'desc';
   row.innerHTML = `
     <div class="field-top">
       <input class="checkbox" type="checkbox" ${field.visible ? 'checked' : ''} data-action="toggle-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}">
       <label class="field-label">${field.label}</label>
     </div>
-    ${fieldKey === 'summary' ?
-      `<textarea data-action="update-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}" placeholder="${field.placeholder || ''}">${field.value || ''}</textarea>` :
-      `<input class="input" data-action="update-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}" value="${escapeHtml(field.value || '')}" placeholder="${field.placeholder || ''}">`
-    }
+    ${isLong
+      ? `<textarea data-action="update-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}" placeholder="${field.placeholder || ''}">${field.value || ''}</textarea>`
+      : `<input class="input" data-action="update-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}" value="${escapeHtml(field.value || '')}" placeholder="${field.placeholder || ''}">`}
     <div class="field-meta">仅当 visible = true 且内容非空时，右侧模板才会渲染</div>
   `;
   return row;
@@ -296,7 +351,6 @@ function renderField(moduleKey, itemId, fieldKey, field) {
 function renderItemCard(moduleKey, item, index, itemLabel) {
   const card = document.createElement('div');
   card.className = 'item-card';
-
   const fieldEntries = Object.entries(item).filter(([k, v]) => !['id', 'visible', 'bullets'].includes(k) && v && typeof v === 'object' && 'label' in v);
   const grid = document.createElement('div');
   grid.className = fieldEntries.length > 2 ? 'grid-2' : 'grid-1';
@@ -304,11 +358,8 @@ function renderItemCard(moduleKey, item, index, itemLabel) {
 
   const bulletsWrap = document.createElement('div');
   bulletsWrap.className = 'bullets-block';
-  const bulletsTitle = document.createElement('div');
-  bulletsTitle.innerHTML = '<strong>Bullet 描述</strong><div class="helper-text">每一个 bullet 也可单独勾选显示或隐藏</div>';
-  bulletsWrap.appendChild(bulletsTitle);
+  bulletsWrap.innerHTML = '<div><strong>Bullet 描述</strong><div class="helper-text">每一个 bullet 也可单独勾选显示或隐藏</div></div>';
   (item.bullets || []).forEach((bullet, bulletIndex) => bulletsWrap.appendChild(renderBullet(moduleKey, item.id, bullet, bulletIndex)));
-
   const bulletActions = document.createElement('div');
   bulletActions.className = 'section-actions';
   bulletActions.innerHTML = `<button class="btn" data-action="add-bullet" data-module="${moduleKey}" data-item="${item.id}">+ 添加 Bullet</button>`;
@@ -321,6 +372,8 @@ function renderItemCard(moduleKey, item, index, itemLabel) {
         <span>${itemLabel} ${index + 1}</span>
       </div>
       <div class="item-card-actions">
+        <button class="icon-btn" data-action="move-item-up" data-module="${moduleKey}" data-item="${item.id}">↑ 上移</button>
+        <button class="icon-btn" data-action="move-item-down" data-module="${moduleKey}" data-item="${item.id}">↓ 下移</button>
         <button class="icon-btn" data-action="delete-item" data-module="${moduleKey}" data-item="${item.id}">删除</button>
       </div>
     </div>
@@ -338,6 +391,8 @@ function renderBullet(moduleKey, itemId, bullet, bulletIndex) {
     <div style="flex:1;display:grid;gap:8px;">
       <textarea data-action="update-bullet" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}" placeholder="例如：主导机械结构优化，降低设备故障率 15%。">${bullet.value || ''}</textarea>
       <div class="section-actions">
+        <button class="icon-btn" data-action="move-bullet-up" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}">↑ 上移</button>
+        <button class="icon-btn" data-action="move-bullet-down" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}">↓ 下移</button>
         <button class="icon-btn" data-action="delete-bullet" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}">删除 Bullet</button>
       </div>
     </div>
@@ -345,8 +400,32 @@ function renderBullet(moduleKey, itemId, bullet, bulletIndex) {
   return row;
 }
 
-function getItem(moduleKey, itemId) {
-  return state.modules[moduleKey].items.find(i => i.id === itemId);
+function getItem(moduleKey, itemId) { return state.modules[moduleKey].items.find(i => i.id === itemId); }
+function moveInArray(arr, from, to) {
+  if (from < 0 || to < 0 || from >= arr.length || to >= arr.length) return;
+  const [item] = arr.splice(from, 1);
+  arr.splice(to, 0, item);
+}
+function moveModule(moduleKey, delta) {
+  const order = normalizeOrder(state.settings.moduleOrder);
+  const index = order.indexOf(moduleKey);
+  const next = index + delta;
+  if (index === -1 || next < 0 || next >= order.length) return;
+  moveInArray(order, index, next);
+  state.settings.moduleOrder = order;
+}
+function moveItem(moduleKey, itemId, delta) {
+  const items = state.modules[moduleKey].items;
+  const index = items.findIndex(i => i.id === itemId);
+  const next = index + delta;
+  if (index === -1 || next < 0 || next >= items.length) return;
+  moveInArray(items, index, next);
+}
+function moveBullet(moduleKey, itemId, bulletIndex, delta) {
+  const bullets = getItem(moduleKey, itemId).bullets;
+  const next = bulletIndex + delta;
+  if (next < 0 || next >= bullets.length) return;
+  moveInArray(bullets, bulletIndex, next);
 }
 
 function renderPreview() {
@@ -363,13 +442,30 @@ function renderPreview() {
 }
 
 function getModuleOrder(template) {
+  const manual = normalizeOrder(state.settings.moduleOrder).filter(k => k !== 'personalInfo');
   if (template === 'engineering') {
-    return ['education', 'projects', 'skills', 'internships', 'research', 'achievements', 'awards', 'certificates', 'languages', 'summary', 'links'];
+    const preferred = ['projects', 'skills', 'internships', 'research'];
+    const first = preferred.filter(k => manual.includes(k));
+    const rest = manual.filter(k => !first.includes(k));
+    return [...first, ...rest];
   }
   if (template === 'en-minimal') {
-    return ['education', 'experience', 'projects', 'skills', 'research', 'achievements', 'certificates', 'languages', 'links', 'summary'];
+    const manualNoMeta = manual.filter(k => !['awards'].includes(k));
+    const mapped = [];
+    let inserted = false;
+    manualNoMeta.forEach(k => {
+      if (['internships', 'projects', 'research'].includes(k)) {
+        if (!inserted) {
+          mapped.push('experience');
+          inserted = true;
+        }
+      } else {
+        mapped.push(k);
+      }
+    });
+    return mapped;
   }
-  return ['education', 'internships', 'projects', 'research', 'awards', 'achievements', 'skills', 'certificates', 'languages', 'summary', 'links'];
+  return manual;
 }
 
 function renderHeader(template) {
@@ -380,23 +476,24 @@ function renderHeader(template) {
   const title = isFieldVisible(f.title) ? `<div class="entry-subtitle">${escapeHtml(f.title.value)}</div>` : '';
   const commonContacts = [f.phone, f.email, f.location, f.website].filter(isFieldVisible).map(x => `<span class="contact-item">${escapeHtml(x.value)}</span>`);
   let extra = [];
-  if (template !== 'en-minimal') {
-    extra = [f.gender, f.birth, f.political].filter(isFieldVisible).map(x => `<span class="contact-item">${escapeHtml(x.value)}</span>`);
-  }
+  if (template !== 'en-minimal') extra = [f.gender, f.birth, f.political].filter(isFieldVisible).map(x => `<span class="contact-item">${escapeHtml(x.value)}</span>`);
+  const showAvatar = template !== 'en-minimal' && isFieldVisible(f.avatar);
+  const avatarHtml = showAvatar ? `<img class="resume-avatar" src="${f.avatar.value}" alt="avatar">` : '';
   return `
-    <div class="resume-header">
-      <div class="resume-name">${name}</div>
-      ${title}
-      <div class="resume-headline">${[...commonContacts, ...extra].join('<span>·</span>')}</div>
+    <div class="resume-header ${showAvatar ? 'with-avatar' : ''}">
+      <div>
+        <div class="resume-name">${name}</div>
+        ${title}
+        <div class="resume-headline">${[...commonContacts, ...extra].join('<span>·</span>')}</div>
+      </div>
+      ${avatarHtml}
     </div>
   `;
 }
 
 function renderModulePreview(key, template) {
-  if (template === 'en-minimal' && key === 'experience') {
-    return renderCombinedExperience();
-  }
-  const def = MODULE_DEFS.find(d => d.key === key);
+  if (template === 'en-minimal' && key === 'experience') return renderCombinedExperience();
+  const def = BASE_MODULE_DEFS.find(d => d.key === key);
   const mod = state.modules[key];
   if (!def || !mod || !mod.visible) return '';
 
@@ -410,25 +507,23 @@ function renderModulePreview(key, template) {
   const items = mod.items.filter(item => item.visible && itemHasVisibleContent(item));
   if (!items.length) return '';
   const title = template === 'en-minimal' ? translateLabel(def.label) : def.label;
-
   if (key === 'skills') return `<section class="resume-section"><div class="section-title">${title}</div>${renderSkills(items)}</section>`;
   if (key === 'languages') return `<section class="resume-section"><div class="section-title">${title}</div>${renderLanguages(items)}</section>`;
   if (key === 'links') return `<section class="resume-section"><div class="section-title">${title}</div>${renderLinks(items)}</section>`;
-  return `<section class="resume-section"><div class="section-title">${title}</div>${items.map(item => renderEntry(item)).join('')}</section>`;
+  return `<section class="resume-section html2pdf__page-break-inside"><div class="section-title">${title}</div>${items.map(item => renderEntry(item)).join('')}</section>`;
 }
 
 function renderCombinedExperience() {
-  const groups = [state.modules.internships, state.modules.projects, state.modules.research].filter(Boolean);
+  const groups = ['internships', 'projects', 'research'].map(k => state.modules[k]).filter(Boolean);
   const items = groups.flatMap(g => g.visible ? g.items.filter(item => item.visible && itemHasVisibleContent(item)) : []);
   if (!items.length) return '';
-  return `<section class="resume-section"><div class="section-title">Experience</div>${items.map(item => renderEntry(item)).join('')}</section>`;
+  return `<section class="resume-section html2pdf__page-break-inside"><div class="section-title">Experience</div>${items.map(item => renderEntry(item)).join('')}</section>`;
 }
 
 function itemHasVisibleContent(item) {
   const fieldOk = Object.values(item).some(v => v && typeof v === 'object' && 'value' in v && isFieldVisible(v));
   return fieldOk || visibleBullets(item).length > 0;
 }
-
 function renderEntry(item) {
   const title = firstVisible(item, ['name', 'title', 'school', 'language']) || '';
   const subtitle = [firstVisible(item, ['role', 'degree', 'type']), firstVisible(item, ['org', 'major', 'issuer', 'status'])].filter(Boolean).join(' · ');
@@ -436,7 +531,7 @@ function renderEntry(item) {
   const location = firstVisible(item, ['location']) || '';
   const bullets = visibleBullets(item);
   return `
-    <div class="entry">
+    <div class="entry html2pdf__page-break-inside">
       <div class="entry-header">
         <div>
           <div class="entry-title">${escapeHtml(title)}</div>
@@ -449,7 +544,6 @@ function renderEntry(item) {
     </div>
   `;
 }
-
 function renderSkills(items) {
   const chips = [];
   const rows = [];
@@ -462,7 +556,6 @@ function renderSkills(items) {
   if (rows.length) return rows.join('');
   return `<div class="chips">${chips.map(c => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</div>`;
 }
-
 function renderLanguages(items) {
   return `<div class="plain-list">${items.map(item => {
     const l = firstVisible(item, ['language']);
@@ -470,17 +563,16 @@ function renderLanguages(items) {
     return l || lv ? `<div><span class="entry-title">${escapeHtml(l)}</span>${lv ? `：${escapeHtml(lv)}` : ''}</div>` : '';
   }).join('')}</div>`;
 }
-
 function renderLinks(items) {
   return `<div class="plain-list">${items.map(item => {
     const t = firstVisible(item, ['title']);
     const u = firstVisible(item, ['url']);
     const d = firstVisible(item, ['desc']);
     if (!t && !u && !d) return '';
-    return `<div><span class="entry-title">${escapeHtml(t || u || 'Link')}</span>${u ? ` — ${escapeHtml(u)}` : ''}${d ? ` · ${escapeHtml(d)}` : ''}</div>`;
+    const maybeLink = u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(u)}</a>` : '';
+    return `<div><span class="entry-title">${escapeHtml(t || u || 'Link')}</span>${u ? ` — ${maybeLink}` : ''}${d ? ` · ${escapeHtml(d)}` : ''}</div>`;
   }).join('')}</div>`;
 }
-
 function firstVisible(item, keys) {
   for (const key of keys) {
     const field = item[key];
@@ -502,7 +594,6 @@ function escapeHtml(str) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
-
 function createItemByModule(moduleKey) {
   if (moduleKey === 'education') return createEducationItem();
   if (moduleKey === 'internships') return createExperienceItem('intern', '例如：供应链优化实习');
@@ -517,26 +608,33 @@ function createItemByModule(moduleKey) {
   return createExperienceItem('item', '新条目');
 }
 
-editorContent.addEventListener('click', (e) => {
-  const target = e.target.closest('[data-action]');
-  if (!target) return;
-  const action = target.dataset.action;
+function handleAction(action, target) {
   const moduleKey = target.dataset.module;
   const itemId = target.dataset.item;
   const bulletIndex = Number(target.dataset.bullet);
-
   if (action === 'collapse-module') state.modules[moduleKey].collapsed = !state.modules[moduleKey].collapsed;
   if (action === 'add-item') state.modules[moduleKey].items.push(createItemByModule(moduleKey));
-  if (action === 'delete-item') {
-    if (confirm('确认删除这条经历/条目？删除后不可恢复。')) {
-      state.modules[moduleKey].items = state.modules[moduleKey].items.filter(i => i.id !== itemId);
-    }
-  }
+  if (action === 'delete-item' && confirm('确认删除这条经历/条目？删除后不可恢复。')) state.modules[moduleKey].items = state.modules[moduleKey].items.filter(i => i.id !== itemId);
   if (action === 'add-bullet') getItem(moduleKey, itemId).bullets.push(createBullet('', true));
-  if (action === 'delete-bullet') {
-    if (confirm('确认删除这个 bullet？')) getItem(moduleKey, itemId).bullets.splice(bulletIndex, 1);
+  if (action === 'delete-bullet' && confirm('确认删除这个 bullet？')) getItem(moduleKey, itemId).bullets.splice(bulletIndex, 1);
+  if (action === 'move-module-up') moveModule(moduleKey, -1);
+  if (action === 'move-module-down') moveModule(moduleKey, 1);
+  if (action === 'move-item-up') moveItem(moduleKey, itemId, -1);
+  if (action === 'move-item-down') moveItem(moduleKey, itemId, 1);
+  if (action === 'move-bullet-up') moveBullet(moduleKey, itemId, bulletIndex, -1);
+  if (action === 'move-bullet-down') moveBullet(moduleKey, itemId, bulletIndex, 1);
+  if (action === 'clear-avatar') {
+    const avatar = state.modules.personalInfo.fields.avatar;
+    avatar.value = '';
+    avatar.visible = false;
   }
   render();
+}
+
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+  handleAction(target.dataset.action, target);
 });
 
 window.addEventListener('change', (e) => {
@@ -549,6 +647,17 @@ window.addEventListener('change', (e) => {
     else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked;
   }
   if (action === 'toggle-bullet') getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked;
+  if (t.id === 'avatar-input') {
+    const file = t.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      state.modules.personalInfo.fields.avatar.value = reader.result;
+      state.modules.personalInfo.fields.avatar.visible = true;
+      render();
+    };
+    reader.readAsDataURL(file);
+  }
   render();
 });
 
@@ -569,19 +678,18 @@ window.addEventListener('input', (e) => {
 templateSelect.addEventListener('change', () => { state.settings.template = templateSelect.value; render(); });
 themeColorInput.addEventListener('input', () => { state.settings.themeColor = themeColorInput.value; render(); });
 fontScaleInput.addEventListener('input', () => { state.settings.fontScale = Number(fontScaleInput.value); render(); });
-
 document.getElementById('print-btn').addEventListener('click', () => window.print());
 
 document.getElementById('export-pdf-btn').addEventListener('click', () => {
   const nameField = state.modules.personalInfo.fields.name;
-  const filename = (text(nameField.value) ? text(nameField.value) + '_简历.pdf' : 'Resume.pdf');
+  const filename = text(nameField.value) ? text(nameField.value) + '_简历.pdf' : 'Resume.pdf';
   const opt = {
     margin: [0, 0, 0, 0],
     filename,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'] }
+    pagebreak: { mode: ['css', 'legacy', 'avoid-all'], avoid: ['.entry', '.resume-section', 'li'] }
   };
   html2pdf().set(opt).from(resumePage).save();
 });
@@ -600,9 +708,10 @@ document.getElementById('import-json-input').addEventListener('change', async (e
   const file = e.target.files[0];
   if (!file) return;
   try {
-    const text = await file.text();
-    const parsed = JSON.parse(text);
+    const txt = await file.text();
+    const parsed = JSON.parse(txt);
     state = deepMerge(defaultState(), parsed);
+    state.settings.moduleOrder = normalizeOrder(state.settings.moduleOrder);
     render();
     alert('JSON 导入成功。');
   } catch (err) {
