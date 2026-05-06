@@ -133,7 +133,21 @@ function importJsonResume(data) { state = defaultState(); const b = data.basics 
 
 function handleAction(action, target) { const moduleKey = target.dataset.module, itemId = target.dataset.item, bulletIndex = Number(target.dataset.bullet); if (action === 'collapse-module') state.modules[moduleKey].collapsed = !state.modules[moduleKey].collapsed; if (action === 'add-item') state.modules[moduleKey].items.push(createItemByModule(moduleKey)); if (action === 'delete-item' && confirm('确认删除这条经历/条目？删除后不可恢复。')) state.modules[moduleKey].items = state.modules[moduleKey].items.filter(i => i.id !== itemId); if (action === 'add-bullet') getItem(moduleKey, itemId).bullets.push(createBullet('', true)); if (action === 'delete-bullet' && confirm('确认删除这个 bullet？')) getItem(moduleKey, itemId).bullets.splice(bulletIndex, 1); if (action === 'move-module-up') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i - 1); state.settings.moduleOrder = order; } if (action === 'move-module-down') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i + 1); state.settings.moduleOrder = order; } if (action === 'move-item-up') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i - 1); } if (action === 'move-item-down') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i + 1); } if (action === 'move-bullet-up') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex - 1); if (action === 'move-bullet-down') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex + 1); if (action === 'clear-avatar') { const avatar = state.modules.personalInfo.fields.avatar; avatar.value = ''; avatar.visible = false; } render(); }
 
-document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (!target) return; handleAction(target.dataset.action, target); });
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+  const action = target.dataset.action;
+
+  if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) {
+    return;
+  }
+
+  if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) {
+    return;
+  }
+
+  handleAction(action, target);
+});
 window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') state.modules[t.dataset.module].visible = t.checked; if (action === 'toggle-item') getItem(t.dataset.module, t.dataset.item).visible = t.checked; if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; } if (action === 'toggle-bullet') getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); } render(); });
 window.addEventListener('input', (e) => { const t = e.target, action = t.dataset.action; if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; render(); } if (action === 'update-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].value = t.value; render(); } });
 
