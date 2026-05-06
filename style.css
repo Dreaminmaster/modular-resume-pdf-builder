@@ -197,6 +197,13 @@ input[type="range"] { width: 100%; }
 .template-product .resume-section { margin-top: 16px; }
 .template-product .chips .chip { background: color-mix(in srgb, var(--primary) 12%, white); }
 
+.template-academic .resume-header { border-bottom: 1px solid #94a3b8; padding-bottom: 14px; }
+.template-academic .section-title {
+  border-bottom-width: 1px; color: #0f172a; letter-spacing: 0.08em;
+}
+.template-academic .entry-title { font-weight: 700; }
+.template-academic .summary, .template-academic .entry-subtitle { color: #334155; }
+
 @media (max-width: 1500px) {
   .app-shell { grid-template-columns: 280px 1fr; }
   .preview-panel { grid-column: 1 / -1; }

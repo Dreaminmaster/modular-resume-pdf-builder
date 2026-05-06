@@ -33,6 +33,7 @@
           <option value="engineering">工程技术模板</option>
           <option value="campus">校招双栏模板</option>
           <option value="product">产品经理模板</option>
+          <option value="academic">学术 CV 模板</option>
         </select>
 
         <label class="control-label">语言模式</label>
@@ -57,9 +58,14 @@
           <button id="export-pdf-btn" class="btn btn-primary">一键导出 PDF</button>
           <button id="print-btn" class="btn">浏览器打印导出</button>
           <button id="export-json-btn" class="btn">导出 JSON</button>
+          <button id="export-jsonresume-btn" class="btn">导出 JSON Resume</button>
           <label class="btn btn-file">
             导入 JSON
             <input id="import-json-input" type="file" accept="application/json" hidden />
+          </label>
+          <label class="btn btn-file">
+            导入 JSON Resume
+            <input id="import-jsonresume-input" type="file" accept="application/json" hidden />
           </label>
           <button id="reset-btn" class="btn btn-danger">清空全部数据</button>
         </div>
