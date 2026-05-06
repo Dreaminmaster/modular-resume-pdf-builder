@@ -46,6 +46,7 @@
         <div class="button-grid primary-actions">
           <button id="export-pdf-btn" class="btn btn-primary">一键导出 PDF</button>
           <button id="print-btn" class="btn">浏览器打印导出</button>
+          <button id="scroll-preview-btn" class="btn mid-only">查看预览</button>
         </div>
 
         <details class="advanced-settings">
@@ -96,7 +97,7 @@
       <div id="editor-content" class="editor-content"></div>
     </main>
 
-    <section class="preview-panel">
+    <section class="preview-panel" id="preview-panel">
       <div class="preview-toolbar no-print">
         <div>
           <h2>实时预览</h2>
@@ -110,6 +111,36 @@
         <div id="resume-page" class="resume-page template-cn-classic"></div>
       </div>
     </section>
+  </div>
+
+  <div class="mobile-bar no-print">
+    <button class="btn" id="mobile-template-btn">模板</button>
+    <button class="btn" id="mobile-preview-btn">预览</button>
+    <button class="btn" id="mobile-export-btn">导出</button>
+    <button class="btn" id="mobile-more-btn">更多</button>
+  </div>
+
+  <div class="mobile-drawer no-print hidden" id="mobile-drawer">
+    <div class="mobile-drawer-panel">
+      <div class="mobile-drawer-header">
+        <strong id="mobile-drawer-title">菜单</strong>
+        <button class="icon-btn" id="mobile-drawer-close">关闭</button>
+      </div>
+      <div id="mobile-drawer-content"></div>
+    </div>
+  </div>
+
+  <div class="mobile-preview-modal no-print hidden" id="mobile-preview-modal">
+    <div class="mobile-preview-header">
+      <strong>预览</strong>
+      <div class="section-actions">
+        <button class="btn btn-primary" id="mobile-preview-export">导出 PDF</button>
+        <button class="icon-btn" id="mobile-preview-close">关闭</button>
+      </div>
+    </div>
+    <div class="mobile-preview-body">
+      <div id="mobile-preview-clone"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>

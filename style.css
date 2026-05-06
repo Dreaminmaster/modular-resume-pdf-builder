@@ -232,11 +232,47 @@ input[type="range"] { width: 100%; }
 .template-academic .entry-title { font-weight: 700; }
 .template-academic .summary, .template-academic .entry-subtitle { color: #334155; }
 
+.mid-only { display: none; }
+.mobile-bar, .mobile-drawer, .mobile-preview-modal { display: none; }
+
+@media (min-width: 901px) and (max-width: 1500px) {
+  .app-shell { grid-template-columns: 300px minmax(360px, 1fr); }
+  .preview-panel { grid-column: 1 / -1; }
+  .sidebar { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow: auto; }
+  .editor { position: static; max-height: none; overflow: visible; }
+  .mid-only { display: block; }
+}
+
+@media (max-width: 900px) {
+  body { padding-bottom: 84px; }
+  .sidebar { position: static; max-height: none; overflow: visible; }
+  .editor { position: static; max-height: none; overflow: visible; }
+  .mobile-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    background: rgba(255,255,255,0.96); border-top: 1px solid var(--border); padding: 10px 12px env(safe-area-inset-bottom);
+  }
+  .mobile-bar .btn { padding: 10px 8px; font-size: 13px; }
+  .mobile-drawer {
+    display: block; position: fixed; inset: 0; background: rgba(15,23,42,0.36); z-index: 60;
+  }
+  .mobile-drawer.hidden { display: none; }
+  .mobile-drawer-panel {
+    position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 18px 18px 0 0; padding: 16px; max-height: 72vh; overflow: auto;
+  }
+  .mobile-drawer-header, .mobile-preview-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
+  }
+  .mobile-preview-modal {
+    display: block; position: fixed; inset: 0; z-index: 70; background: #f8fafc; overflow: auto; padding: 14px 12px 24px;
+  }
+  .mobile-preview-modal.hidden { display: none; }
+  .mobile-preview-body { display: flex; justify-content: center; }
+  .mobile-preview-body #mobile-preview-clone { width: 100%; }
+  .mobile-preview-body .resume-page { transform: scale(0.55); transform-origin: top center; width: 794px; margin: 0 auto -460px; }
+}
+
 @media (max-width: 1500px) {
   .flow-guide { grid-template-columns: repeat(2, 1fr); }
-  .app-shell { grid-template-columns: 280px 1fr; }
-  .preview-panel { grid-column: 1 / -1; }
-  .sidebar, .editor { position: static; max-height: none; }
 }
 
 @media (max-width: 900px) {
