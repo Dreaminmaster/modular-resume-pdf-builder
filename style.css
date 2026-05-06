@@ -240,6 +240,7 @@ input[type="range"] { width: 100%; }
     grid-template-columns: 300px minmax(0, 1fr);
     align-items: start;
   }
+
   .sidebar {
     grid-column: 1;
     grid-row: 1 / span 2;
@@ -248,24 +249,35 @@ input[type="range"] { width: 100%; }
     max-height: calc(100vh - 40px);
     overflow: auto;
     z-index: 2;
+    align-self: start;
   }
+
   .editor {
     grid-column: 2;
     grid-row: 1;
     position: static;
     max-height: none;
     overflow: visible;
+    min-width: 0;
+    width: 100%;
   }
+
   .preview-panel {
     grid-column: 2;
     grid-row: 2;
     width: 100%;
+    min-width: 0;
+    align-self: start;
   }
+
   .preview-stage {
     align-items: flex-start;
     overflow-x: auto;
   }
-  .mid-only { display: block; }
+
+  .mid-only {
+    display: block;
+  }
 }
 
 @media (max-width: 900px) {

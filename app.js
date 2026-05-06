@@ -169,10 +169,11 @@ fontScaleInput.addEventListener('input', () => { state.settings.fontScale = Numb
 function exportPDF() {
   const element = document.getElementById('resume-page');
   const nameField = state.modules.personalInfo.fields.name;
-  const fileName = text(nameField.value) ? `${text(nameField.value)}_简历.pdf` : 'Resume.pdf';
+  const cleanName = text(nameField.value);
+  const fileName = cleanName ? `${cleanName}_简历.pdf` : 'Resume.pdf';
 
   if (typeof html2pdf === 'undefined') {
-    alert('PDF 导出库未加载，请使用浏览器打印导出。');
+    alert('PDF 导出库未加载，请使用“浏览器打印导出”。');
     return;
   }
 
@@ -192,8 +193,7 @@ function exportPDF() {
       orientation: 'portrait'
     },
     pagebreak: {
-      mode: ['avoid-all', 'css', 'legacy'],
-      avoid: ['.entry', '.resume-section', 'li', '.resume-header']
+      mode: ['avoid-all', 'css', 'legacy']
     }
   };
 
