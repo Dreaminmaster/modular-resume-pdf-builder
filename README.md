@@ -1,4 +1,4 @@
-# Modular Resume PDF Builder
+# Modular Resume PDF Builder (Stable Front-end Release)
 
 A pure front-end resume builder based on a simple but powerful idea:
 
