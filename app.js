@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'modular_resume_builder_v4';
+const STORAGE_KEY = 'modular_resume_builder_v5';
 
 const BASE_MODULE_DEFS = [
   { key: 'personalInfo', label: '基本信息', en: 'Profile', type: 'fields' },
@@ -16,12 +16,12 @@ const BASE_MODULE_DEFS = [
 ];
 
 const TEMPLATE_META = {
-  'cn-classic': { name: '经典单栏中文模板', className: 'template-cn-classic' },
-  'en-minimal': { name: '英文极简模板', className: 'template-en-minimal' },
-  'engineering': { name: '工程技术模板', className: 'template-engineering' },
-  'campus': { name: '校招双栏模板', className: 'template-campus' },
-  'product': { name: '产品经理模板', className: 'template-product' },
-  'academic': { name: '学术 CV 模板', className: 'template-academic' }
+  'cn-classic': { name: '经典单栏中文模板', className: 'template-cn-classic', hint: '适合中文校招 / 通用求职，结构稳重清晰。' },
+  'en-minimal': { name: '英文极简模板', className: 'template-en-minimal', hint: '适合海外简历，强调简洁留白与国际化表达。' },
+  'engineering': { name: '工程技术模板', className: 'template-engineering', hint: '优先突出项目、技术栈与工程实践成果。' },
+  'campus': { name: '校招双栏模板', className: 'template-campus', hint: '适合应届生，把教育与技能信息放在更醒目的侧栏。' },
+  'product': { name: '产品经理模板', className: 'template-product', hint: '突出项目经验、业务理解、协调推进与结果表达。' },
+  'academic': { name: '学术 CV 模板', className: 'template-academic', hint: '适合科研、申请、学术成果展示，优先研究与成果。' }
 };
 const LANGUAGE_META = { zh: '中文模式', en: 'English Mode', bilingual: '中英双语标题' };
 const EXPERIENCE_KEYS = ['internships', 'projects', 'research'];
@@ -34,7 +34,6 @@ function isFieldVisible(field) { return !!field && field.visible && text(field.v
 function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function nl2br(str) { return str.replace(/\n/g, '<br>'); }
 function visibleBullets(item) { return (item.bullets || []).filter(b => b.visible && text(b.value)); }
-function first(arr) { return arr.find(Boolean) || ''; }
 
 function createEducationItem() { return { id: uid('edu'), visible: true, school: createField('学校', '', true, '例如：同济大学'), degree: createField('学历/学位', '', true, '例如：硕士 / 本科'), major: createField('专业', '', true, '例如：机械工程'), date: createField('时间', '', true, '例如：2021.09 - 2024.06'), location: createField('地点', '', true, '例如：上海'), bullets: [createBullet('GPA 3.8/4.0，专业前 10%', true)] }; }
 function createExperienceItem(prefix, sampleTitle) { return { id: uid(prefix), visible: true, name: createField('名称', '', true, sampleTitle), role: createField('岗位/角色', '', true, '例如：机械设计实习生 / 项目负责人'), org: createField('单位/平台', '', true, '例如：ABB / 实验室 / 学院创新中心'), date: createField('时间', '', true, '例如：2023.06 - 2023.09'), location: createField('地点', '', true, '例如：上海'), bullets: [createBullet('负责核心模块设计与推进，协调 3 人小组完成阶段目标。', true), createBullet('通过数据分析或流程优化，将效率提升 20%+。', true)] }; }
@@ -63,6 +62,7 @@ const moduleNav = document.getElementById('module-nav');
 const moduleOrderList = document.getElementById('module-order-list');
 const resumePage = document.getElementById('resume-page');
 const templateSelect = document.getElementById('template-select');
+const templateHint = document.getElementById('template-hint');
 const languageModeSelect = document.getElementById('language-mode');
 const currentTemplateName = document.getElementById('current-template-name');
 const currentLanguageName = document.getElementById('current-language-name');
@@ -85,27 +85,11 @@ function loadState() {
   }
 }
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function deepMerge(base, extra) {
-  if (Array.isArray(base)) return Array.isArray(extra) ? extra : base;
-  if (typeof base !== 'object' || base === null) return extra ?? base;
-  const output = { ...base };
-  for (const key of Object.keys(extra || {})) output[key] = key in base ? deepMerge(base[key], extra[key]) : extra[key];
-  return output;
-}
-function normalizeOrder(order) {
-  const all = BASE_MODULE_DEFS.map(x => x.key);
-  const valid = Array.isArray(order) ? order.filter(k => all.includes(k)) : [];
-  all.forEach(k => { if (!valid.includes(k)) valid.push(k); });
-  return valid;
-}
+function deepMerge(base, extra) { if (Array.isArray(base)) return Array.isArray(extra) ? extra : base; if (typeof base !== 'object' || base === null) return extra ?? base; const output = { ...base }; for (const key of Object.keys(extra || {})) output[key] = key in base ? deepMerge(base[key], extra[key]) : extra[key]; return output; }
+function normalizeOrder(order) { const all = BASE_MODULE_DEFS.map(x => x.key); const valid = Array.isArray(order) ? order.filter(k => all.includes(k)) : []; all.forEach(k => { if (!valid.includes(k)) valid.push(k); }); return valid; }
 function moduleDefs() { return normalizeOrder(state.settings.moduleOrder).map(k => BASE_MODULE_DEFS.find(x => x.key === k)).filter(Boolean); }
 function moduleTitle(def) { return state.settings.languageMode === 'en' ? def.en : state.settings.languageMode === 'bilingual' ? `${def.label} / ${def.en}` : def.label; }
-function moduleHasContent(def) {
-  const mod = state.modules[def.key];
-  if (!mod) return false;
-  if (def.type === 'fields') return Object.values(mod.fields).some(f => text(f.value));
-  return mod.items.some(item => Object.values(item).some(v => v && typeof v === 'object' && 'value' in v && text(v.value)) || visibleBullets(item).length);
-}
+function moduleHasContent(def) { const mod = state.modules[def.key]; if (!mod) return false; if (def.type === 'fields') return Object.values(mod.fields).some(f => text(f.value)); return mod.items.some(item => Object.values(item).some(v => v && typeof v === 'object' && 'value' in v && text(v.value)) || visibleBullets(item).length); }
 function getItem(moduleKey, itemId) { return state.modules[moduleKey].items.find(i => i.id === itemId); }
 function moveInArray(arr, from, to) { if (from < 0 || to < 0 || from >= arr.length || to >= arr.length) return; const [item] = arr.splice(from, 1); arr.splice(to, 0, item); }
 
@@ -113,42 +97,32 @@ function render() { applySettings(); renderNav(); renderOrderControls(); renderE
 function applySettings() {
   document.documentElement.style.setProperty('--primary', state.settings.themeColor);
   document.documentElement.style.setProperty('--font-scale', state.settings.fontScale);
-  templateSelect.value = state.settings.template; languageModeSelect.value = state.settings.languageMode; themeColorInput.value = state.settings.themeColor; fontScaleInput.value = state.settings.fontScale; fontScaleValue.textContent = Math.round(state.settings.fontScale * 100) + '%'; currentTemplateName.textContent = TEMPLATE_META[state.settings.template].name; currentLanguageName.textContent = LANGUAGE_META[state.settings.languageMode]; resumePage.className = 'resume-page ' + TEMPLATE_META[state.settings.template].className;
+  templateSelect.value = state.settings.template;
+  templateHint.textContent = TEMPLATE_META[state.settings.template].hint;
+  languageModeSelect.value = state.settings.languageMode;
+  themeColorInput.value = state.settings.themeColor;
+  fontScaleInput.value = state.settings.fontScale;
+  fontScaleValue.textContent = Math.round(state.settings.fontScale * 100) + '%';
+  currentTemplateName.textContent = TEMPLATE_META[state.settings.template].name;
+  currentLanguageName.textContent = LANGUAGE_META[state.settings.languageMode];
+  resumePage.className = 'resume-page ' + TEMPLATE_META[state.settings.template].className;
 }
-function renderNav() {
-  moduleNav.innerHTML = '';
-  moduleDefs().forEach(def => { const mod = state.modules[def.key]; const row = document.createElement('div'); row.className = 'module-nav-item'; row.innerHTML = `<label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><a href="#module-${def.key}">${moduleTitle(def)}</a></label><span class="status-dot ${moduleHasContent(def) ? 'filled' : ''}"></span>`; moduleNav.appendChild(row); });
-}
-function renderOrderControls() {
-  moduleOrderList.innerHTML = '';
-  const defs = moduleDefs();
-  defs.forEach((def, index) => { const item = document.createElement('div'); item.className = 'order-item'; item.innerHTML = `<span class="order-label">${index + 1}. ${moduleTitle(def)}</span><div class="order-actions"><button class="icon-btn" data-action="move-module-up" data-module="${def.key}" ${index === 0 ? 'disabled' : ''}>↑</button><button class="icon-btn" data-action="move-module-down" data-module="${def.key}" ${index === defs.length - 1 ? 'disabled' : ''}>↓</button></div>`; moduleOrderList.appendChild(item); });
-}
-function renderEditor() {
-  editorContent.innerHTML = '';
-  moduleDefs().forEach(def => {
-    const mod = state.modules[def.key]; const card = document.createElement('section'); card.className = 'module-card'; card.id = 'module-' + def.key; const bodyClass = mod.collapsed ? 'module-body collapsed' : 'module-body'; card.innerHTML = `<div class="module-header"><div class="module-title-wrap"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><div><h3 class="module-title">${moduleTitle(def)}</h3><div class="helper-text">模块隐藏后，内容仍然保留在信息池中</div></div></div><div class="module-actions">${def.type === 'list' ? `<button class="icon-btn" data-action="add-item" data-module="${def.key}">+ 新增${def.itemLabel}</button>` : ''}<button class="icon-btn" data-action="collapse-module" data-module="${def.key}">${mod.collapsed ? '展开' : '折叠'}</button></div></div><div class="${bodyClass}"></div>`;
-    const body = card.querySelector('.module-body');
-    if (def.key === 'personalInfo') body.appendChild(renderAvatarControls());
-    if (def.type === 'fields') body.appendChild(renderFieldsBlock(def.key, mod.fields, def.key === 'personalInfo' ? ['avatar'] : []));
-    else { mod.items.forEach((item, index) => body.appendChild(renderItemCard(def.key, item, index, def.itemLabel))); const actions = document.createElement('div'); actions.className = 'section-actions'; actions.innerHTML = `<button class="btn" data-action="add-item" data-module="${def.key}">+ 添加${def.itemLabel}</button>`; body.appendChild(actions); }
-    editorContent.appendChild(card);
-  });
-}
-function renderAvatarControls() {
-  const wrap = document.createElement('div'); const avatarField = state.modules.personalInfo.fields.avatar; const preview = avatarField.value ? `<img class="avatar-preview" src="${avatarField.value}" alt="avatar preview">` : `<div class="avatar-placeholder">无头像</div>`; wrap.className = 'field-row avatar-uploader'; wrap.innerHTML = `<div class="field-top"><input class="checkbox" type="checkbox" ${avatarField.visible ? 'checked' : ''} data-action="toggle-field" data-module="personalInfo" data-field="avatar"><label class="field-label">头像</label></div>${preview}<div class="section-actions"><label class="btn btn-file">上传头像<input id="avatar-input" type="file" accept="image/*" hidden></label><button class="btn" data-action="clear-avatar">清除头像</button></div><div class="field-meta">头像保存在本地浏览器 localStorage 中。英文极简模板默认不显示头像。</div>`; return wrap;
-}
+function renderNav() { moduleNav.innerHTML = ''; moduleDefs().forEach(def => { const mod = state.modules[def.key]; const row = document.createElement('div'); row.className = 'module-nav-item'; row.innerHTML = `<label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><a href="#module-${def.key}">${moduleTitle(def)}</a></label><span class="status-dot ${moduleHasContent(def) ? 'filled' : ''}"></span>`; moduleNav.appendChild(row); }); }
+function renderOrderControls() { moduleOrderList.innerHTML = ''; const defs = moduleDefs(); defs.forEach((def, index) => { const item = document.createElement('div'); item.className = 'order-item'; item.innerHTML = `<span class="order-label">${index + 1}. ${moduleTitle(def)}</span><div class="order-actions"><button class="icon-btn" data-action="move-module-up" data-module="${def.key}" ${index === 0 ? 'disabled' : ''}>↑</button><button class="icon-btn" data-action="move-module-down" data-module="${def.key}" ${index === defs.length - 1 ? 'disabled' : ''}>↓</button></div>`; moduleOrderList.appendChild(item); }); }
+function renderEditor() { editorContent.innerHTML = ''; moduleDefs().forEach(def => { const mod = state.modules[def.key]; const card = document.createElement('section'); card.className = 'module-card'; card.id = 'module-' + def.key; const bodyClass = mod.collapsed ? 'module-body collapsed' : 'module-body'; card.innerHTML = `<div class="module-header"><div class="module-title-wrap"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><div><h3 class="module-title">${moduleTitle(def)}</h3><div class="helper-text">模块隐藏后，内容仍然保留在信息池中</div></div></div><div class="module-actions">${def.type === 'list' ? `<button class="icon-btn" data-action="add-item" data-module="${def.key}">+ 新增${def.itemLabel}</button>` : ''}<button class="icon-btn" data-action="collapse-module" data-module="${def.key}">${mod.collapsed ? '展开' : '折叠'}</button></div></div><div class="${bodyClass}"></div>`; const body = card.querySelector('.module-body'); if (def.key === 'personalInfo') body.appendChild(renderAvatarControls()); if (def.type === 'fields') body.appendChild(renderFieldsBlock(def.key, mod.fields, def.key === 'personalInfo' ? ['avatar'] : [])); else { mod.items.forEach((item, index) => body.appendChild(renderItemCard(def.key, item, index, def.itemLabel))); const actions = document.createElement('div'); actions.className = 'section-actions'; actions.innerHTML = `<button class="btn" data-action="add-item" data-module="${def.key}">+ 添加${def.itemLabel}</button>`; body.appendChild(actions); } editorContent.appendChild(card); }); }
+function renderAvatarControls() { const wrap = document.createElement('div'); const avatarField = state.modules.personalInfo.fields.avatar; const preview = avatarField.value ? `<img class="avatar-preview" src="${avatarField.value}" alt="avatar preview">` : `<div class="avatar-placeholder">无头像</div>`; wrap.className = 'field-row avatar-uploader'; wrap.innerHTML = `<div class="field-top"><input class="checkbox" type="checkbox" ${avatarField.visible ? 'checked' : ''} data-action="toggle-field" data-module="personalInfo" data-field="avatar"><label class="field-label">头像</label></div>${preview}<div class="section-actions"><label class="btn btn-file">上传头像<input id="avatar-input" type="file" accept="image/*" hidden></label><button class="btn" data-action="clear-avatar">清除头像</button></div><div class="field-meta">头像保存在本地浏览器 localStorage 中。英文极简模板默认不显示头像。</div>`; return wrap; }
 function renderFieldsBlock(moduleKey, fields, exclude = []) { const wrap = document.createElement('div'); const keys = Object.keys(fields).filter(k => !exclude.includes(k)); if (keys.length >= 4) wrap.classList.add('grid-2'); keys.forEach(fieldKey => wrap.appendChild(renderField(moduleKey, null, fieldKey, fields[fieldKey]))); return wrap; }
 function renderField(moduleKey, itemId, fieldKey, field) { const row = document.createElement('div'); row.className = 'field-row'; const isLong = fieldKey === 'summary' || fieldKey === 'desc'; row.innerHTML = `<div class="field-top"><input class="checkbox" type="checkbox" ${field.visible ? 'checked' : ''} data-action="toggle-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}"><label class="field-label">${field.label}</label></div>${isLong ? `<textarea data-action="update-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}" placeholder="${field.placeholder || ''}">${field.value || ''}</textarea>` : `<input class="input" data-action="update-field" data-module="${moduleKey}" ${itemId ? `data-item="${itemId}"` : ''} data-field="${fieldKey}" value="${escapeHtml(field.value || '')}" placeholder="${field.placeholder || ''}">`}<div class="field-meta">仅当 visible = true 且内容非空时，右侧模板才会渲染</div>`; return row; }
 function renderItemCard(moduleKey, item, index, itemLabel) { const card = document.createElement('div'); card.className = 'item-card'; const fieldEntries = Object.entries(item).filter(([k, v]) => !['id', 'visible', 'bullets'].includes(k) && v && typeof v === 'object' && 'label' in v); const grid = document.createElement('div'); grid.className = fieldEntries.length > 2 ? 'grid-2' : 'grid-1'; fieldEntries.forEach(([fieldKey, field]) => grid.appendChild(renderField(moduleKey, item.id, fieldKey, field))); const bulletsWrap = document.createElement('div'); bulletsWrap.className = 'bullets-block'; bulletsWrap.innerHTML = '<div><strong>Bullet 描述</strong><div class="helper-text">每一个 bullet 也可单独勾选显示或隐藏</div></div>'; (item.bullets || []).forEach((bullet, bulletIndex) => bulletsWrap.appendChild(renderBullet(moduleKey, item.id, bullet, bulletIndex))); const bulletActions = document.createElement('div'); bulletActions.className = 'section-actions'; bulletActions.innerHTML = `<button class="btn" data-action="add-bullet" data-module="${moduleKey}" data-item="${item.id}">+ 添加 Bullet</button>`; bulletsWrap.appendChild(bulletActions); card.innerHTML = `<div class="item-card-header"><div class="item-card-title"><input class="checkbox" type="checkbox" ${item.visible ? 'checked' : ''} data-action="toggle-item" data-module="${moduleKey}" data-item="${item.id}"><span>${itemLabel} ${index + 1}</span></div><div class="item-card-actions"><button class="icon-btn" data-action="move-item-up" data-module="${moduleKey}" data-item="${item.id}">↑ 上移</button><button class="icon-btn" data-action="move-item-down" data-module="${moduleKey}" data-item="${item.id}">↓ 下移</button><button class="icon-btn" data-action="delete-item" data-module="${moduleKey}" data-item="${item.id}">删除</button></div></div>`; card.appendChild(grid); card.appendChild(bulletsWrap); return card; }
 function renderBullet(moduleKey, itemId, bullet, bulletIndex) { const row = document.createElement('div'); row.className = 'bullet-row'; row.innerHTML = `<input class="checkbox" type="checkbox" ${bullet.visible ? 'checked' : ''} data-action="toggle-bullet" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}"><div style="flex:1;display:grid;gap:8px;"><textarea data-action="update-bullet" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}" placeholder="例如：主导机械结构优化，降低设备故障率 15%。">${bullet.value || ''}</textarea><div class="section-actions"><button class="icon-btn" data-action="move-bullet-up" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}">↑ 上移</button><button class="icon-btn" data-action="move-bullet-down" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}">↓ 下移</button><button class="icon-btn" data-action="delete-bullet" data-module="${moduleKey}" data-item="${itemId}" data-bullet="${bulletIndex}">删除 Bullet</button></div></div>`; return row; }
 function createItemByModule(moduleKey) { if (moduleKey === 'education') return createEducationItem(); if (moduleKey === 'internships') return createExperienceItem('intern', '例如：供应链优化实习'); if (moduleKey === 'projects') return createExperienceItem('project', '例如：智能分拣系统设计'); if (moduleKey === 'research') return createExperienceItem('research', '例如：数字孪生产线研究'); if (moduleKey === 'awards') return createAwardItem(); if (moduleKey === 'achievements') return createAchievementItem(); if (moduleKey === 'skills') return createSkillItem(); if (moduleKey === 'certificates') return createCertificateItem(); if (moduleKey === 'languages') return createLanguageItem(); if (moduleKey === 'links') return createLinkItem(); return createExperienceItem('item', '新条目'); }
 
+function safeArray(v) { return Array.isArray(v) ? v : []; }
+function parseDateStart(v) { const m = text(v).split('-')[0]?.trim(); return m || ''; }
+function parseDateEnd(v) { const parts = text(v).split('-'); return parts[1] ? parts[1].trim() : ''; }
 function exportJsonResume() {
   const p = state.modules.personalInfo.fields;
-  const basics = {
-    name: text(p.name.value), label: text(p.title.value), email: text(p.email.value), phone: text(p.phone.value), url: text(p.website.value), summary: text(state.modules.summary.fields.summary.value), location: { address: text(p.location.value) }
-  };
+  const basics = { name: text(p.name.value), label: text(p.title.value), email: text(p.email.value), phone: text(p.phone.value), url: text(p.website.value), summary: text(state.modules.summary.fields.summary.value), image: text(p.avatar.value), location: { address: text(p.location.value) }, profiles: state.modules.links.items.filter(i => i.visible).map(i => ({ network: text(i.title.value), url: text(i.url.value), username: text(i.desc.value) })) };
   const education = state.modules.education.items.filter(i => i.visible).map(i => ({ institution: text(i.school.value), studyType: text(i.degree.value), area: text(i.major.value), startDate: parseDateStart(i.date.value), endDate: parseDateEnd(i.date.value), score: visibleBullets(i).map(b => b.value).join(' | ') }));
   const work = state.modules.internships.items.filter(i => i.visible).map(i => ({ name: text(i.org.value), position: text(i.role.value), location: text(i.location.value), startDate: parseDateStart(i.date.value), endDate: parseDateEnd(i.date.value), summary: text(i.name.value), highlights: visibleBullets(i).map(b => b.value) }));
   const projects = state.modules.projects.items.filter(i => i.visible).map(i => ({ name: text(i.name.value), description: [text(i.role.value), text(i.org.value)].filter(Boolean).join(' · '), startDate: parseDateStart(i.date.value), endDate: parseDateEnd(i.date.value), highlights: visibleBullets(i).map(b => b.value), url: '' }));
@@ -157,11 +131,10 @@ function exportJsonResume() {
   const awards = state.modules.awards.items.filter(i => i.visible).map(i => ({ title: text(i.title.value), awarder: text(i.issuer.value), date: text(i.date.value), summary: visibleBullets(i).map(b => b.value).join(' | ') }));
   const certificates = state.modules.certificates.items.filter(i => i.visible).map(i => ({ name: text(i.name.value), issuer: text(i.issuer.value), date: text(i.date.value) }));
   const publications = state.modules.achievements.items.filter(i => i.visible).map(i => ({ name: text(i.title.value), publisher: text(i.status.value), releaseDate: text(i.date.value), summary: [text(i.type.value), ...visibleBullets(i).map(b => b.value)].filter(Boolean).join(' | ') }));
-  const profiles = state.modules.links.items.filter(i => i.visible).map(i => ({ network: text(i.title.value), url: text(i.url.value), username: text(i.desc.value) }));
-  return { basics, work, education, awards, certificates, publications, skills, languages, projects, profiles, meta: { canonical: 'https://jsonresume.org/schema/' } };
+  const volunteer = state.modules.research.items.filter(i => i.visible).map(i => ({ organization: text(i.org.value), position: text(i.role.value), startDate: parseDateStart(i.date.value), endDate: parseDateEnd(i.date.value), summary: text(i.name.value), highlights: visibleBullets(i).map(b => b.value) }));
+  const interests = state.modules.skills.items.filter(i => i.visible && !text(i.category.value)).flatMap(i => text(i.content.value).split(/[,，、]/).map(s => s.trim()).filter(Boolean)).map(v => ({ name: v }));
+  return { basics, work, volunteer, education, awards, certificates, publications, skills, languages, projects, interests, references: [], meta: { canonical: 'https://jsonresume.org/schema/' } };
 }
-function parseDateStart(v) { const m = text(v).split('-')[0]?.trim(); return m || ''; }
-function parseDateEnd(v) { const parts = text(v).split('-'); return parts[1] ? parts[1].trim() : ''; }
 function importJsonResume(data) {
   state = defaultState();
   const b = data.basics || {};
@@ -171,17 +144,20 @@ function importJsonResume(data) {
   pf.email.value = b.email || '';
   pf.phone.value = b.phone || '';
   pf.website.value = b.url || '';
-  pf.location.value = (b.location && (b.location.address || b.location.city || b.location.region)) || '';
+  pf.location.value = (b.location && (b.location.address || b.location.city || b.location.region || b.location.countryCode)) || '';
+  pf.avatar.value = b.image || '';
+  pf.avatar.visible = !!b.image;
   if (b.summary) state.modules.summary.fields.summary.value = b.summary;
-  if (Array.isArray(data.education) && data.education.length) state.modules.education.items = data.education.map(e => ({ id: uid('edu'), visible: true, school: createField('学校', e.institution || '', true), degree: createField('学历/学位', e.studyType || '', true), major: createField('专业', e.area || '', true), date: createField('时间', [e.startDate, e.endDate].filter(Boolean).join(' - '), true), location: createField('地点', '', true), bullets: e.score ? [createBullet(e.score, true)] : [] }));
-  if (Array.isArray(data.work) && data.work.length) state.modules.internships.items = data.work.map(w => ({ id: uid('intern'), visible: true, name: createField('名称', w.summary || '', true), role: createField('岗位/角色', w.position || '', true), org: createField('单位/平台', w.name || '', true), date: createField('时间', [w.startDate, w.endDate].filter(Boolean).join(' - '), true), location: createField('地点', w.location || '', true), bullets: (w.highlights || []).map(h => createBullet(h, true)) }));
-  if (Array.isArray(data.projects) && data.projects.length) state.modules.projects.items = data.projects.map(p => ({ id: uid('project'), visible: true, name: createField('名称', p.name || '', true), role: createField('岗位/角色', p.description || '', true), org: createField('单位/平台', '', true), date: createField('时间', [p.startDate, p.endDate].filter(Boolean).join(' - '), true), location: createField('地点', '', true), bullets: (p.highlights || []).map(h => createBullet(h, true)) }));
-  if (Array.isArray(data.skills) && data.skills.length) state.modules.skills.items = data.skills.map(s => ({ id: uid('skill'), visible: true, category: createField('技能分类', s.name || '', true), content: createField('技能内容', (s.keywords || []).join('、'), true), bullets: [] }));
-  if (Array.isArray(data.languages) && data.languages.length) state.modules.languages.items = data.languages.map(l => ({ id: uid('lang'), visible: true, language: createField('语言', l.language || '', true), level: createField('水平', l.fluency || '', true), bullets: [] }));
-  if (Array.isArray(data.awards) && data.awards.length) state.modules.awards.items = data.awards.map(a => ({ id: uid('award'), visible: true, title: createField('奖项名称', a.title || '', true), issuer: createField('颁发单位', a.awarder || '', true), date: createField('时间', a.date || '', true), bullets: a.summary ? [createBullet(a.summary, true)] : [] }));
-  if (Array.isArray(data.certificates) && data.certificates.length) state.modules.certificates.items = data.certificates.map(c => ({ id: uid('cert'), visible: true, name: createField('证书名称', c.name || '', true), issuer: createField('颁发机构', c.issuer || '', true), date: createField('时间', c.date || '', true), bullets: [] }));
-  if (Array.isArray(data.publications) && data.publications.length) state.modules.achievements.items = data.publications.map(pu => ({ id: uid('achievement'), visible: true, title: createField('成果名称', pu.name || '', true), type: createField('类型', 'Publication', true), date: createField('时间', pu.releaseDate || '', true), status: createField('状态', pu.publisher || '', true), bullets: pu.summary ? [createBullet(pu.summary, true)] : [] }));
-  if (Array.isArray(data.profiles) && data.profiles.length) state.modules.links.items = data.profiles.map(pr => ({ id: uid('link'), visible: true, title: createField('链接名称', pr.network || '', true), url: createField('链接地址', pr.url || '', true), desc: createField('说明', pr.username || '', true), bullets: [] }));
+  if (safeArray(b.profiles).length) state.modules.links.items = b.profiles.map(pr => ({ id: uid('link'), visible: true, title: createField('链接名称', pr.network || '', true), url: createField('链接地址', pr.url || '', true), desc: createField('说明', pr.username || '', true), bullets: [] }));
+  if (safeArray(data.education).length) state.modules.education.items = data.education.map(e => ({ id: uid('edu'), visible: true, school: createField('学校', e.institution || '', true), degree: createField('学历/学位', e.studyType || '', true), major: createField('专业', e.area || '', true), date: createField('时间', [e.startDate, e.endDate].filter(Boolean).join(' - '), true), location: createField('地点', '', true), bullets: e.score ? [createBullet(e.score, true)] : [] }));
+  if (safeArray(data.work).length) state.modules.internships.items = data.work.map(w => ({ id: uid('intern'), visible: true, name: createField('名称', w.summary || '', true), role: createField('岗位/角色', w.position || '', true), org: createField('单位/平台', w.name || '', true), date: createField('时间', [w.startDate, w.endDate].filter(Boolean).join(' - '), true), location: createField('地点', w.location || '', true), bullets: safeArray(w.highlights).map(h => createBullet(h, true)) }));
+  if (safeArray(data.projects).length) state.modules.projects.items = data.projects.map(p => ({ id: uid('project'), visible: true, name: createField('名称', p.name || '', true), role: createField('岗位/角色', p.description || '', true), org: createField('单位/平台', '', true), date: createField('时间', [p.startDate, p.endDate].filter(Boolean).join(' - '), true), location: createField('地点', '', true), bullets: safeArray(p.highlights).map(h => createBullet(h, true)) }));
+  if (safeArray(data.volunteer).length) state.modules.research.items = data.volunteer.map(v => ({ id: uid('research'), visible: true, name: createField('名称', v.summary || '', true), role: createField('岗位/角色', v.position || '', true), org: createField('单位/平台', v.organization || '', true), date: createField('时间', [v.startDate, v.endDate].filter(Boolean).join(' - '), true), location: createField('地点', '', true), bullets: safeArray(v.highlights).map(h => createBullet(h, true)) }));
+  if (safeArray(data.skills).length) state.modules.skills.items = data.skills.map(s => ({ id: uid('skill'), visible: true, category: createField('技能分类', s.name || '', true), content: createField('技能内容', safeArray(s.keywords).join('、'), true), bullets: [] }));
+  if (safeArray(data.languages).length) state.modules.languages.items = data.languages.map(l => ({ id: uid('lang'), visible: true, language: createField('语言', l.language || '', true), level: createField('水平', l.fluency || '', true), bullets: [] }));
+  if (safeArray(data.awards).length) state.modules.awards.items = data.awards.map(a => ({ id: uid('award'), visible: true, title: createField('奖项名称', a.title || '', true), issuer: createField('颁发单位', a.awarder || '', true), date: createField('时间', a.date || '', true), bullets: a.summary ? [createBullet(a.summary, true)] : [] }));
+  if (safeArray(data.certificates).length) state.modules.certificates.items = data.certificates.map(c => ({ id: uid('cert'), visible: true, name: createField('证书名称', c.name || '', true), issuer: createField('颁发机构', c.issuer || '', true), date: createField('时间', c.date || '', true), bullets: [] }));
+  if (safeArray(data.publications).length) state.modules.achievements.items = data.publications.map(pu => ({ id: uid('achievement'), visible: true, title: createField('成果名称', pu.name || '', true), type: createField('类型', 'Publication', true), date: createField('时间', pu.releaseDate || '', true), status: createField('状态', pu.publisher || '', true), bullets: pu.summary ? [createBullet(pu.summary, true)] : [] }));
   render();
 }
 
@@ -219,26 +195,15 @@ languageModeSelect.addEventListener('change', () => { state.settings.languageMod
 themeColorInput.addEventListener('input', () => { state.settings.themeColor = themeColorInput.value; render(); });
 fontScaleInput.addEventListener('input', () => { state.settings.fontScale = Number(fontScaleInput.value); render(); });
 document.getElementById('print-btn').addEventListener('click', () => window.print());
-document.getElementById('export-pdf-btn').addEventListener('click', () => {
-  const filename = text(state.modules.personalInfo.fields.name.value) ? text(state.modules.personalInfo.fields.name.value) + '_简历.pdf' : 'Resume.pdf';
-  html2pdf().set({ margin: [0,0,0,0], filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy', 'avoid-all'], avoid: ['.entry', '.resume-section', 'li'] } }).from(resumePage).save();
-});
+document.getElementById('export-pdf-btn').addEventListener('click', () => { const filename = text(state.modules.personalInfo.fields.name.value) ? text(state.modules.personalInfo.fields.name.value) + '_简历.pdf' : 'Resume.pdf'; html2pdf().set({ margin: [0,0,0,0], filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy', 'avoid-all'], avoid: ['.entry', '.resume-section', 'li'] } }).from(resumePage).save(); });
 document.getElementById('export-json-btn').addEventListener('click', () => downloadJson(state, 'modular-resume-data.json'));
 document.getElementById('export-jsonresume-btn').addEventListener('click', () => downloadJson(exportJsonResume(), 'resume.json'));
 function downloadJson(data, filename) { const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
-
 document.getElementById('import-json-input').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { state = deepMerge(defaultState(), JSON.parse(await file.text())); state.settings.moduleOrder = normalizeOrder(state.settings.moduleOrder); if (!state.settings.languageMode) state.settings.languageMode = 'zh'; render(); alert('JSON 导入成功。'); } catch { alert('导入失败：JSON 格式不正确。'); } e.target.value = ''; });
 document.getElementById('import-jsonresume-input').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { importJsonResume(JSON.parse(await file.text())); alert('JSON Resume 导入成功。'); } catch { alert('导入失败：JSON Resume 格式不正确。'); } e.target.value = ''; });
 document.getElementById('reset-btn').addEventListener('click', () => { if (confirm('确认清空全部数据？此操作会移除 localStorage 中保存的信息池。')) { state = defaultState(); render(); } });
 
-function getPreviewOrder(template) {
-  let manual = normalizeOrder(state.settings.moduleOrder).filter(k => k !== 'personalInfo');
-  if (template === 'engineering') { const first = ['projects', 'skills', 'internships', 'research'].filter(k => manual.includes(k)); manual = [...first, ...manual.filter(k => !first.includes(k))]; }
-  if (template === 'product') { const first = ['projects', 'internships', 'summary', 'skills'].filter(k => manual.includes(k)); manual = [...first, ...manual.filter(k => !first.includes(k))]; }
-  if (template === 'academic') { const first = ['research', 'achievements', 'education', 'projects'].filter(k => manual.includes(k)); manual = [...first, ...manual.filter(k => !first.includes(k))]; }
-  if (template === 'en-minimal') { const mapped = []; let inserted = false; manual.forEach(k => { if (EXPERIENCE_KEYS.includes(k)) { if (!inserted) { mapped.push('experience'); inserted = true; } } else mapped.push(k); }); return mapped; }
-  return manual;
-}
+function getPreviewOrder(template) { let manual = normalizeOrder(state.settings.moduleOrder).filter(k => k !== 'personalInfo'); if (template === 'engineering') { const first = ['projects', 'skills', 'internships', 'research'].filter(k => manual.includes(k)); manual = [...first, ...manual.filter(k => !first.includes(k))]; } if (template === 'product') { const first = ['projects', 'internships', 'summary', 'skills'].filter(k => manual.includes(k)); manual = [...first, ...manual.filter(k => !first.includes(k))]; } if (template === 'academic') { const first = ['research', 'achievements', 'education', 'projects'].filter(k => manual.includes(k)); manual = [...first, ...manual.filter(k => !first.includes(k))]; } if (template === 'en-minimal') { const mapped = []; let inserted = false; manual.forEach(k => { if (EXPERIENCE_KEYS.includes(k)) { if (!inserted) { mapped.push('experience'); inserted = true; } } else mapped.push(k); }); return mapped; } return manual; }
 function findDef(key) { return BASE_MODULE_DEFS.find(d => d.key === key); }
 function previewTitle(key) { if (key === 'experience') return state.settings.languageMode === 'zh' ? '经历' : state.settings.languageMode === 'bilingual' ? '经历 / Experience' : 'Experience'; const def = findDef(key); return def ? moduleTitle(def) : key; }
 function firstVisible(item, keys) { for (const key of keys) { const field = item[key]; if (isFieldVisible(field)) return field.value.trim(); } return ''; }
@@ -252,8 +217,9 @@ function renderSummary() { const mod = state.modules.summary; if (!mod || !mod.v
 function renderCombinedExperience() { const items = EXPERIENCE_KEYS.flatMap(k => state.modules[k].visible ? state.modules[k].items.filter(item => item.visible && itemHasVisibleContent(item)) : []); if (!items.length) return ''; return `<section class="resume-section html2pdf__page-break-inside"><div class="section-title">${previewTitle('experience')}</div>${items.map(renderEntry).join('')}</section>`; }
 function renderHeader() { const p = state.modules.personalInfo; if (!p.visible) return ''; const f = p.fields; const name = isFieldVisible(f.name) ? escapeHtml(f.name.value) : '你的姓名'; const title = isFieldVisible(f.title) ? `<div class="entry-subtitle">${escapeHtml(f.title.value)}</div>` : ''; const common = [f.phone, f.email, f.location, f.website].filter(isFieldVisible).map(x => `<span class="contact-item">${escapeHtml(x.value)}</span>`); let extra = []; if (!['en-minimal'].includes(state.settings.template)) extra = [f.gender, f.birth, f.political].filter(isFieldVisible).map(x => `<span class="contact-item">${escapeHtml(x.value)}</span>`); const showAvatar = !['en-minimal', 'product', 'academic'].includes(state.settings.template) && isFieldVisible(f.avatar); return `<div class="resume-header ${showAvatar ? 'with-avatar' : ''}"><div><div class="resume-name">${name}</div>${title}<div class="resume-headline">${[...common, ...extra].join('<span>·</span>')}</div></div>${showAvatar ? `<img class="resume-avatar" src="${f.avatar.value}" alt="avatar">` : ''}</div>`; }
 function renderPageFooter() { return `<div class="page-footer"><span>${TEMPLATE_META[state.settings.template].name}</span><span>Generated by Modular Resume PDF Builder</span></div>`; }
-function renderCampusLayout(order) { const leftKeys = ['education', 'skills', 'languages', 'certificates', 'links']; const left = []; const right = []; order.forEach(k => { if (k === 'experience') right.push(renderCombinedExperience()); else if (k === 'summary') right.push(renderSummary()); else if (leftKeys.includes(k)) left.push(renderListModule(k)); else right.push(renderListModule(k)); }); return `<div class="sidebar-col">${renderHeader()}${left.join('')}</div><div class="main-col">${right.join('')}${renderPageFooter()}</div>`; }
-function renderPreview() { const template = state.settings.template; const order = getPreviewOrder(template); if (template === 'campus') { resumePage.innerHTML = renderCampusLayout(order); return requestAnimationFrame(checkPageOverflow); } const parts = [renderHeader()]; order.forEach(key => { if (key === 'experience') parts.push(renderCombinedExperience()); else if (key === 'summary') parts.push(renderSummary()); else parts.push(renderListModule(key)); }); parts.push(renderPageFooter()); resumePage.innerHTML = parts.join(''); requestAnimationFrame(checkPageOverflow); }
-function checkPageOverflow() { const pxPerMm = 96 / 25.4; const a4Height = 297 * pxPerMm; pageWarning.textContent = resumePage.scrollHeight <= a4Height + 24 ? '提示：当前内容在一页 A4 内。' : '提示：当前内容可能超过一页 A4，导出时将自动分页。'; pageWarning.classList.remove('hidden'); }
+function renderPreviewMeta() { const modulesVisible = moduleDefs().filter(def => state.modules[def.key].visible).length; return `<div class="preview-meta-card no-print">当前模板强调：${escapeHtml(TEMPLATE_META[state.settings.template].hint)} 当前已启用模块 ${modulesVisible} 个。</div>`; }
+function renderCampusLayout(order) { const leftKeys = ['education', 'skills', 'languages', 'certificates', 'links']; const left = []; const right = []; order.forEach(k => { if (k === 'experience') right.push(renderCombinedExperience()); else if (k === 'summary') right.push(renderSummary()); else if (leftKeys.includes(k)) left.push(renderListModule(k)); else right.push(renderListModule(k)); }); return `${renderPreviewMeta()}<div class="sidebar-col">${renderHeader()}${left.join('')}</div><div class="main-col">${right.join('')}${renderPageFooter()}</div>`; }
+function renderPreview() { const template = state.settings.template; const order = getPreviewOrder(template); if (template === 'campus') { resumePage.innerHTML = renderCampusLayout(order); return requestAnimationFrame(checkPageOverflow); } const parts = [renderPreviewMeta(), renderHeader()]; order.forEach(key => { if (key === 'experience') parts.push(renderCombinedExperience()); else if (key === 'summary') parts.push(renderSummary()); else parts.push(renderListModule(key)); }); parts.push(renderPageFooter()); resumePage.innerHTML = parts.join(''); requestAnimationFrame(checkPageOverflow); }
+function checkPageOverflow() { const pxPerMm = 96 / 25.4; const a4Height = 297 * pxPerMm; const ratio = resumePage.scrollHeight / a4Height; if (ratio <= 1.02) pageWarning.textContent = '提示：当前内容基本可控制在一页 A4 内。'; else if (ratio <= 1.35) pageWarning.textContent = '提示：当前内容略超一页，建议精简 1-2 个条目或 bullet。'; else pageWarning.textContent = '提示：当前内容明显超过一页，导出时将自动分页，建议切换模板或精简内容。'; pageWarning.classList.remove('hidden'); }
 
 render();
