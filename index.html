@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modular Resume PDF Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar no-print">
+      <div class="brand">
+        <h1>Modular Resume PDF Builder</h1>
+        <p>信息池 + 勾选显示 + 模板排版 + PDF 导出</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">模块目录</div>
+        <div id="module-nav" class="module-nav"></div>
+      </div>
+
+      <div class="panel controls-panel">
+        <div class="panel-title">简历设置</div>
+
+        <label class="control-label">模板</label>
+        <select id="template-select" class="input">
+          <option value="cn-classic">经典单栏中文模板</option>
+          <option value="en-minimal">英文极简模板</option>
+          <option value="engineering">工程技术模板</option>
+        </select>
+
+        <label class="control-label">主题色</label>
+        <input id="theme-color" type="color" value="#2563eb" class="color-input" />
+
+        <label class="control-label">字体大小</label>
+        <input id="font-scale" type="range" min="0.9" max="1.15" step="0.01" value="1" />
+        <div class="muted small">预览字号缩放：<span id="font-scale-value">100%</span></div>
+
+        <div class="button-grid">
+          <button id="export-pdf-btn" class="btn btn-primary">一键导出 PDF</button>
+          <button id="print-btn" class="btn">浏览器打印导出</button>
+          <button id="export-json-btn" class="btn">导出 JSON</button>
+          <label class="btn btn-file">
+            导入 JSON
+            <input id="import-json-input" type="file" accept="application/json" hidden />
+          </label>
+          <button id="reset-btn" class="btn btn-danger">清空全部数据</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="editor no-print">
+      <div class="editor-header">
+        <div>
+          <h2>问卷式填写区</h2>
+          <p>取消勾选 ≠ 删除。隐藏只是 visible=false，数据仍保留在信息池。</p>
+        </div>
+      </div>
+      <div id="editor-content" class="editor-content"></div>
+    </main>
+
+    <section class="preview-panel">
+      <div class="preview-toolbar no-print">
+        <div>
+          <h2>实时预览</h2>
+          <p>当前模板：<span id="current-template-name">经典单栏中文模板</span></p>
+        </div>
+      </div>
+
+      <div class="preview-stage">
+        <div id="page-warning" class="page-warning hidden">提示：当前内容可能超过一页 A4，导出时将自动分页。</div>
+        <div id="resume-page" class="resume-page template-cn-classic"></div>
+      </div>
+    </section>
+  </div>
+
+  <template id="field-template">
+    <div class="field-row"></div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
