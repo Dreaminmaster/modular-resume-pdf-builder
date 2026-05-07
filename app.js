@@ -215,38 +215,68 @@ async function exportPDF() {
   console.log('[exportPDF] html2pdf type:', typeof html2pdf);
   console.log('[exportPDF] target:', element);
 
-  const options = {
-    margin: 0,
-    filename: fileName,
-    image: {
-      type: 'jpeg',
-      quality: 0.98
-    },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      scrollY: 0,
-      ignoreElements: (el) => el.classList && el.classList.contains('export-exclude')
-    },
-    jsPDF: {
-      unit: 'mm',
-      format: 'a4',
-      orientation: 'portrait'
-    },
-    pagebreak: {
-      mode: ['css', 'legacy']
-    }
-  };
-
   try {
-    await html2pdf()
-      .set(options)
-      .from(element)
-      .save();
+    const options = {
+      margin: 0,
+      filename: fileName,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollY: 0,
+        ignoreElements: (el) => el.classList?.contains('export-exclude')
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+      },
+      pagebreak: {
+        mode: ['css', 'legacy'],
+        avoid: ['.resume-section', '.entry', 'li']
+      }
+    };
 
-    console.log('[exportPDF] saved');
+    const worker = html2pdf().set(options).from(element).toPdf();
+    const pdf = await worker.get('pdf');
+    const blob = pdf.output('blob');
+
+    if (!blob || blob.size === 0) {
+      throw new Error('PDF Blob is empty');
+    }
+
+    const file = new File([blob], fileName, { type: 'application/pdf' });
+    const shareData = { files: [file] };
+
+    if (navigator.canShare && navigator.canShare(shareData) && navigator.share) {
+      try {
+        await navigator.share(shareData);
+        console.log('[exportPDF] shared successfully');
+        return;
+      } catch (shareError) {
+        console.warn('[exportPDF] share canceled or failed:', shareError);
+
+        if (shareError?.name === 'AbortError' || shareError?.name === 'NotAllowedError') {
+          console.log('[exportPDF] share canceled by user');
+          return;
+        }
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    console.log('[exportPDF] downloaded by fallback');
   } catch (error) {
     console.error('[exportPDF] failed:', error);
     alert(`PDF 导出失败：${error?.message || error}`);
