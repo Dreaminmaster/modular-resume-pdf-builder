@@ -334,6 +334,10 @@ input[type="range"] { width: 100%; }
   .template-campus { display: block; }
   .template-campus .sidebar-col { min-height: auto; padding: 0 0 6mm; background: none; }
   .template-campus .main-col { padding: 0; }
+  .export-exclude {
+    display: none !important;
+  }
+
   .page-footer { display: none !important; }
   @page { size: A4; margin: 0; }
 }
