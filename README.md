@@ -1,75 +1,41 @@
-# Modular Resume PDF Builder (Stable Front-end Release)
+# Modular Resume PDF Builder
 
-Current stable version: v1.0.1
+A front-end resume builder based on one simple idea:
 
-A pure front-end resume builder based on a simple but powerful idea:
+**One information pool. Flexible visibility control. Multiple resume layouts.**
 
-**Fill the full information pool → choose what to show → switch templates → export PDF**
+Build your resume once, choose what to show, switch templates, and export a clean PDF.
 
-- Live demo: https://dreaminmaster.github.io/modular-resume-pdf-builder/
-- Repository: https://github.com/Dreaminmaster/modular-resume-pdf-builder
+[Live Demo](https://dreaminmaster.github.io/modular-resume-pdf-builder/) · [GitHub](https://github.com/Dreaminmaster/modular-resume-pdf-builder) · `v1.0.1` · MIT License
 
----
-
-## Screenshots
-
-### Editor
-![Editor Screenshot](docs/screenshot-editor.png)
-
-### Template & Settings Panel
-![Template Screenshot](docs/screenshot-templates.png)
-
-### Live Preview
-![Preview Screenshot](docs/screenshot-preview.png)
+![Modular Resume PDF Builder](docs/screenshot-editor.png)
 
 ---
 
-## Changelog
+## The Idea
 
-### v1.0.1
-- Added custom PDF filename input
-- Renamed module navigation to Resume Content Scope / 简历内容范围
-- Editor now only shows selected modules
-- Adjusted default visible modules
-- Adjusted default personal information fields
-- Kept hidden module data preserved and restorable
+Most resume builders start with a template.
 
-### v1.0.0
-- Initial stable release
-- Information pool editing
-- Field / item / bullet visibility controls
-- Multiple templates
-- Live preview
-- PDF export
-- Responsive desktop and mobile layout
+This one starts with your information.
+
+You can keep all resume materials in one place, then decide which modules, fields, entries, and bullet points should appear in the current resume.
+
+Hidden content is preserved, not deleted.
 
 ---
 
-## Core Philosophy
-
-This project is **not** a fixed-template resume form.
-
-Instead, it follows four rules:
-
-1. **Information Pool First**  
-   Users can keep all resume content in one place.
-2. **Visibility Is Not Deletion**  
-   Unchecking content only hides it; it does not remove the data.
-3. **Templates Read Visible Content Only**  
-   Rendering filters fields/items/bullets using visibility and non-empty values.
-4. **Layout Is Separate from Data**  
-   Templates change presentation, not the underlying resume data.
-
-### Concept Diagram
+## How it works
 
 ```text
 Information Pool
-   ↓
-Visibility Controls
-   ↓
+      ↓
+Content Scope
+      ↓
+Visibility Control
+      ↓
 Template Layout
-   ↓
-PDF / Print Output
+      ↓
+PDF Export
 ```
 
 ---
