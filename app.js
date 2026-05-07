@@ -195,13 +195,6 @@ function getPdfFileName() {
   return buildDefaultPdfFileName();
 }
 
-function isIOSSafari() {
-  const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-  return isIOS && isSafari;
-}
-
 async function exportPDF() {
   const element = document.getElementById('resume-page');
 
@@ -217,16 +210,25 @@ async function exportPDF() {
 
   const fileName = getPdfFileName();
 
+  console.log('[exportPDF] start');
+  console.log('[exportPDF] filename:', fileName);
+  console.log('[exportPDF] html2pdf type:', typeof html2pdf);
+  console.log('[exportPDF] target:', element);
+
   const options = {
     margin: 0,
     filename: fileName,
-    image: { type: 'jpeg', quality: 0.98 },
+    image: {
+      type: 'jpeg',
+      quality: 0.98
+    },
     html2canvas: {
       scale: 2,
       useCORS: true,
+      allowTaint: true,
       backgroundColor: '#ffffff',
       scrollY: 0,
-      ignoreElements: (el) => el.classList?.contains('export-exclude')
+      ignoreElements: (el) => el.classList && el.classList.contains('export-exclude')
     },
     jsPDF: {
       unit: 'mm',
@@ -234,46 +236,20 @@ async function exportPDF() {
       orientation: 'portrait'
     },
     pagebreak: {
-      mode: ['avoid-all', 'css', 'legacy'],
-      avoid: ['.resume-section', '.entry', 'li']
+      mode: ['css', 'legacy']
     }
   };
 
   try {
-    console.log('[exportPDF] start');
-    console.log('[exportPDF] filename:', fileName);
-    console.log('[exportPDF] html2pdf type:', typeof html2pdf);
-    console.log('[exportPDF] iOS Safari:', isIOSSafari());
+    await html2pdf()
+      .set(options)
+      .from(element)
+      .save();
 
-    const worker = html2pdf().set(options).from(element).toPdf();
-    const pdf = await worker.get('pdf');
-    const blob = pdf.output('blob');
-    const file = new File([blob], fileName, { type: 'application/pdf' });
-
-    if (isIOSSafari() && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: fileName,
-        text: 'Resume PDF'
-      });
-      return;
-    }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 1000);
+    console.log('[exportPDF] saved');
   } catch (error) {
     console.error('[exportPDF] failed:', error);
-    alert('PDF 导出失败，请使用“浏览器打印导出”。');
+    alert(`PDF 导出失败：${error?.message || error}`);
   }
 }
 
