@@ -1,5 +1,7 @@
 # Modular Resume PDF Builder (Stable Front-end Release)
 
+Current stable version: v1.0.1
+
 A pure front-end resume builder based on a simple but powerful idea:
 
 **Fill the full information pool → choose what to show → switch templates → export PDF**
@@ -19,6 +21,27 @@ A pure front-end resume builder based on a simple but powerful idea:
 
 ### Live Preview
 ![Preview Screenshot](docs/screenshot-preview.png)
+
+---
+
+## Changelog
+
+### v1.0.1
+- Added custom PDF filename input
+- Renamed module navigation to Resume Content Scope / 简历内容范围
+- Editor now only shows selected modules
+- Adjusted default visible modules
+- Adjusted default personal information fields
+- Kept hidden module data preserved and restorable
+
+### v1.0.0
+- Initial stable release
+- Information pool editing
+- Field / item / bullet visibility controls
+- Multiple templates
+- Live preview
+- PDF export
+- Responsive desktop and mobile layout
 
 ---
 
