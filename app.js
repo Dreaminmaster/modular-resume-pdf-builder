@@ -195,14 +195,25 @@ function getPdfFileName() {
   return buildDefaultPdfFileName();
 }
 
-function exportPDF() {
+async function exportPDF() {
+  console.log('[exportPDF] clicked');
+  console.log('[exportPDF] html2pdf type:', typeof html2pdf);
+  console.log('[exportPDF] target:', document.getElementById('resume-page'));
+  console.log('[exportPDF] filename:', getPdfFileName());
+
   const element = document.getElementById('resume-page');
-  const fileName = getPdfFileName();
+
+  if (!element) {
+    alert('未找到简历预览区域。');
+    return;
+  }
 
   if (typeof html2pdf === 'undefined') {
     alert('PDF 导出库未加载，请使用“浏览器打印导出”。');
     return;
   }
+
+  const fileName = getPdfFileName();
 
   const options = {
     margin: 0,
@@ -211,8 +222,8 @@ function exportPDF() {
     html2canvas: {
       scale: 2,
       useCORS: true,
-      scrollY: 0,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      scrollY: 0
     },
     jsPDF: {
       unit: 'mm',
@@ -220,19 +231,48 @@ function exportPDF() {
       orientation: 'portrait'
     },
     pagebreak: {
-      mode: ['avoid-all', 'css', 'legacy']
+      mode: ['avoid-all', 'css', 'legacy'],
+      avoid: ['.resume-section', '.entry', 'li']
     }
   };
 
-  html2pdf().set(options).from(element).save();
+  try {
+    const worker = html2pdf().set(options).from(element);
+    await worker.save();
+    console.log('[exportPDF] saved:', fileName);
+  } catch (error) {
+    console.warn('[exportPDF] html2pdf save failed, trying blob fallback:', error);
+
+    try {
+      const worker = html2pdf().set(options).from(element);
+      const pdf = await worker.toPdf().get('pdf');
+      const blob = pdf.output('blob');
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+      console.log('[exportPDF] fallback saved:', fileName);
+    } catch (fallbackError) {
+      console.error('[exportPDF] fallback failed:', fallbackError);
+      alert('PDF 导出失败，请检查 Console，或使用“浏览器打印导出”。');
+    }
+  }
 }
 
 function printResume() {
   window.print();
 }
 
-document.getElementById('print-btn').addEventListener('click', printResume);
-document.getElementById('export-pdf-btn').addEventListener('click', exportPDF);
+document.getElementById('print-btn')?.addEventListener('click', printResume);
+document.getElementById('export-pdf-btn')?.addEventListener('click', exportPDF);
+document.getElementById('mobile-export-btn')?.addEventListener('click', exportPDF);
+document.getElementById('mobile-preview-export')?.addEventListener('click', exportPDF);
 document.getElementById('export-json-btn').addEventListener('click', () => { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'modular-resume-data.json'; a.click(); URL.revokeObjectURL(url); });
 document.getElementById('export-jsonresume-btn').addEventListener('click', () => { const blob = new Blob([JSON.stringify(exportJsonResume(), null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'resume.json'; a.click(); URL.revokeObjectURL(url); });
 document.getElementById('import-json-input').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { state = deepMerge(defaultState(), JSON.parse(await file.text())); state.settings.moduleOrder = normalizeOrder(state.settings.moduleOrder); if (!state.settings.languageMode) state.settings.languageMode = 'zh'; render(); alert('JSON 导入成功。'); } catch { alert('导入失败：JSON 格式不正确。'); } e.target.value = ''; });
