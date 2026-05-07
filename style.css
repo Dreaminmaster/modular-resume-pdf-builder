@@ -158,22 +158,31 @@ input[type="range"] { width: 100%; }
 }
 .resume-page {
   width: 794px; min-height: 1123px; background: #fff; color: #111;
-  box-shadow: 0 20px 50px rgba(15,23,42,0.15); padding: 28px 34px; position: relative;
-  font-size: calc(14px * var(--font-scale)); line-height: 1.55;
+  box-shadow: 0 20px 50px rgba(15,23,42,0.15); position: relative;
+  --resume-body-size: 13px;
+  --resume-name-size: 28px;
+  --resume-section-title-size: 15px;
+  --resume-line-height: 1.55;
+  --resume-section-gap: 16px;
+  --resume-page-padding: 28px 34px;
+  --resume-accent-color: var(--primary);
+  padding: var(--resume-page-padding);
+  font-size: var(--resume-body-size);
+  line-height: var(--resume-line-height);
 }
 .resume-page h1, .resume-page h2, .resume-page h3, .resume-page p { margin: 0; }
 .resume-page .resume-header { margin-bottom: 18px; }
 .resume-page .resume-header.with-avatar { display: grid; grid-template-columns: 1fr 92px; gap: 16px; align-items: start; }
-.resume-page .resume-name { font-size: calc(28px * var(--font-scale)); font-weight: 700; }
+.resume-page .resume-name { font-size: var(--resume-name-size); font-weight: 700; }
 .resume-page .resume-headline { margin-top: 8px; color: #374151; display: flex; flex-wrap: wrap; gap: 6px 12px; }
 .resume-page .contact-item { white-space: nowrap; }
 .resume-page .resume-avatar {
   width: 92px; height: 92px; border-radius: 14px; object-fit: cover; border: 1px solid #d1d5db; justify-self: end;
 }
-.resume-page .resume-section { margin-top: 18px; break-inside: avoid-page; page-break-inside: avoid; }
+.resume-page .resume-section { margin-top: var(--resume-section-gap); break-inside: avoid-page; page-break-inside: avoid; }
 .resume-page .section-title {
-  font-size: calc(15px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.04em;
-  font-weight: 700; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 2px solid var(--primary);
+  font-size: var(--resume-section-title-size); text-transform: uppercase; letter-spacing: 0.04em;
+  font-weight: 700; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 2px solid var(--resume-accent-color); color: var(--resume-accent-color);
 }
 .resume-page .entry { margin-bottom: 12px; break-inside: avoid-page; page-break-inside: avoid; }
 .resume-page .entry-header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
@@ -184,8 +193,8 @@ input[type="range"] { width: 100%; }
 .resume-page li { margin-bottom: 4px; break-inside: avoid-page; page-break-inside: avoid; }
 .resume-page .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .resume-page .chip {
-  display: inline-flex; align-items: center; border: 1px solid color-mix(in srgb, var(--primary) 30%, white);
-  background: color-mix(in srgb, var(--primary) 8%, white); color: #1f2937; border-radius: 999px; padding: 4px 10px;
+  display: inline-flex; align-items: center; border: 1px solid color-mix(in srgb, var(--resume-accent-color) 30%, white);
+  background: color-mix(in srgb, var(--resume-accent-color) 8%, white); color: #1f2937; border-radius: 999px; padding: 4px 10px;
   font-size: 0.92em;
 }
 .resume-page .plain-list { display: grid; gap: 6px; }
@@ -193,6 +202,27 @@ input[type="range"] { width: 100%; }
 .resume-page .page-footer {
   position: absolute; left: 34px; right: 34px; bottom: 16px; display: flex; justify-content: space-between; color: #94a3b8; font-size: 11px;
 }
+
+.resume-page.density-compact { --resume-line-height: 1.42; --resume-section-gap: 12px; }
+.resume-page.density-standard { --resume-line-height: 1.55; --resume-section-gap: 16px; }
+.resume-page.density-spacious { --resume-line-height: 1.72; --resume-section-gap: 22px; }
+.resume-page.density-compact .entry { margin-bottom: 8px; }
+.resume-page.density-spacious .entry { margin-bottom: 16px; }
+.resume-page.density-compact li { margin-bottom: 2px; }
+.resume-page.density-spacious li { margin-bottom: 6px; }
+
+.resume-page.font-small { --resume-body-size: 12px; --resume-name-size: 25px; --resume-section-title-size: 14px; }
+.resume-page.font-standard { --resume-body-size: 13px; --resume-name-size: 28px; --resume-section-title-size: 15px; }
+.resume-page.font-large { --resume-body-size: 14px; --resume-name-size: 31px; --resume-section-title-size: 16px; }
+
+.resume-page.margin-narrow { --resume-page-padding: 22px 26px; }
+.resume-page.margin-standard { --resume-page-padding: 28px 34px; }
+.resume-page.margin-wide { --resume-page-padding: 36px 44px; }
+
+.resume-page.accent-theme { --resume-accent-color: var(--primary); }
+.resume-page.accent-black { --resume-accent-color: #111827; }
+.resume-page.accent-blue { --resume-accent-color: #2563eb; }
+.resume-page.accent-purple { --resume-accent-color: #7c3aed; }
 
 .template-cn-classic .resume-header { border-bottom: 3px solid var(--primary); padding-bottom: 12px; }
 .template-cn-classic .resume-name { letter-spacing: 0.03em; }

@@ -48,7 +48,7 @@ function createLinkItem() { return { id: uid('link'), visible: true, title: crea
 
 function defaultState() {
   return {
-    settings: { template: 'cn-classic', languageMode: 'zh', themeColor: '#2563eb', fontScale: 1, moduleOrder: BASE_MODULE_DEFS.map(x => x.key), pdfFileName: '' },
+    settings: { template: 'cn-classic', languageMode: 'zh', themeColor: '#2563eb', fontScale: 1, moduleOrder: BASE_MODULE_DEFS.map(x => x.key), pdfFileName: '', typography: { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' } },
     modules: {
       personalInfo: { visible: true, collapsed: false, fields: {
         name: createField('姓名', '', true, '例如：张三'), title: createField('求职意向', '', true, '例如：机械工程师 / 产品经理 / Data Analyst'), phone: createField('电话', '', true, '例如：138-0000-0000'), email: createField('邮箱', '', true, '例如：name@email.com'), location: createField('所在地', '', true, '例如：上海'), website: createField('个人主页', '', false, '例如：https://portfolio.com'), gender: createField('性别', '', false, '例如：男 / 女'), birth: createField('出生年月', '', false, '例如：2001.08'), political: createField('政治面貌', '', false, '例如：中共党员'), avatar: createField('头像', '', false, '上传头像图片后自动写入')
@@ -101,6 +101,37 @@ function isMeaningfullyEmpty() { const p = state.modules.personalInfo.fields; if
 function render() { applySettings(); renderNav(); renderOrderControls(); renderEditor(); renderPreview(); saveState(); }
 function updatePreviewOnly() { renderPreview(); saveState(); }
 function updateVisibilityOnly() { renderNav(); renderEditor(); renderPreview(); saveState(); }
+function applyResumeTypographyClasses() {
+  const t = state.settings.typography || {
+    density: 'standard',
+    fontSize: 'standard',
+    margin: 'standard',
+    accent: 'theme'
+  };
+
+  resumePage.classList.remove(
+    'density-compact',
+    'density-standard',
+    'density-spacious',
+    'font-small',
+    'font-standard',
+    'font-large',
+    'margin-narrow',
+    'margin-standard',
+    'margin-wide',
+    'accent-theme',
+    'accent-black',
+    'accent-blue',
+    'accent-purple'
+  );
+
+  resumePage.classList.add(
+    `density-${t.density}`,
+    `font-${t.fontSize}`,
+    `margin-${t.margin}`,
+    `accent-${t.accent}`
+  );
+}
 function applySettings() {
   document.documentElement.style.setProperty('--primary', state.settings.themeColor);
   document.documentElement.style.setProperty('--font-scale', state.settings.fontScale);
@@ -114,6 +145,11 @@ function applySettings() {
   currentLanguageName.textContent = LANGUAGE_META[state.settings.languageMode];
   resumePage.className = 'resume-page ' + TEMPLATE_META[state.settings.template].className;
   document.getElementById('pdf-filename-input').value = state.settings.pdfFileName;
+  const t = state.settings.typography || { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' };
+  document.getElementById('typography-density').value = t.density;
+  document.getElementById('typography-font-size').value = t.fontSize;
+  document.getElementById('typography-margin').value = t.margin;
+  document.getElementById('typography-accent').value = t.accent;
 }
 function renderNav() { moduleNav.innerHTML = ''; moduleDefs().forEach(def => { const mod = state.modules[def.key]; const row = document.createElement('div'); row.className = 'module-nav-item'; row.innerHTML = `<label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><a href="#module-${def.key}">${moduleTitle(def)}</a></label><span class="status-dot ${moduleHasContent(def) ? 'filled' : ''}"></span>`; moduleNav.appendChild(row); }); }
 function renderOrderControls() { moduleOrderList.innerHTML = ''; const defs = moduleDefs(); defs.forEach((def, index) => { const item = document.createElement('div'); item.className = 'order-item'; item.innerHTML = `<span class="order-label">${index + 1}. ${moduleTitle(def)}</span><div class="order-actions"><button class="icon-btn" data-action="move-module-up" data-module="${def.key}" ${index === 0 ? 'disabled' : ''}>↑</button><button class="icon-btn" data-action="move-module-down" data-module="${def.key}" ${index === defs.length - 1 ? 'disabled' : ''}>↓</button></div>`; moduleOrderList.appendChild(item); }); }
@@ -147,7 +183,7 @@ function renderPageFooter() { return ''; }
 function renderPreviewMeta() { return ''; }
 function renderEmptyState() { const msg = state.settings.languageMode === 'zh' ? '请先填写信息池，勾选后的内容会出现在这里。' : 'Start by filling your information pool.'; return `<div class="preview-meta-card"><strong>${escapeHtml(msg)}</strong></div>`; }
 function renderCampusLayout(order) { const leftKeys = ['education', 'skills', 'languages', 'certificates', 'links']; const left = []; const right = []; order.forEach(k => { if (k === 'experience') right.push(renderCombinedExperience()); else if (k === 'summary') right.push(renderSummary()); else if (leftKeys.includes(k)) left.push(renderListModule(k)); else right.push(renderListModule(k)); }); return `<div class="sidebar-col">${renderHeader()}${left.join('')}</div><div class="main-col">${right.join('')}</div>`; }
-function renderPreview() { if (isMeaningfullyEmpty()) { resumePage.innerHTML = renderEmptyState(); return requestAnimationFrame(checkPageOverflow); } const template = state.settings.template; const order = getPreviewOrder(template); if (template === 'campus') { resumePage.innerHTML = renderCampusLayout(order); return requestAnimationFrame(checkPageOverflow); } const parts = [renderHeader()]; order.forEach(key => { if (key === 'experience') parts.push(renderCombinedExperience()); else if (key === 'summary') parts.push(renderSummary()); else parts.push(renderListModule(key)); }); resumePage.innerHTML = parts.join(''); requestAnimationFrame(checkPageOverflow); }
+function renderPreview() { if (isMeaningfullyEmpty()) { resumePage.innerHTML = renderEmptyState(); applyResumeTypographyClasses(); return requestAnimationFrame(checkPageOverflow); } const template = state.settings.template; const order = getPreviewOrder(template); if (template === 'campus') { resumePage.innerHTML = renderCampusLayout(order); applyResumeTypographyClasses(); return requestAnimationFrame(checkPageOverflow); } const parts = [renderHeader()]; order.forEach(key => { if (key === 'experience') parts.push(renderCombinedExperience()); else if (key === 'summary') parts.push(renderSummary()); else parts.push(renderListModule(key)); }); resumePage.innerHTML = parts.join(''); applyResumeTypographyClasses(); requestAnimationFrame(checkPageOverflow); }
 function checkPageOverflow() { const pxPerMm = 96 / 25.4; const a4Height = 297 * pxPerMm; const ratio = resumePage.scrollHeight / a4Height; if (ratio <= 1.02) pageWarning.textContent = '提示：当前内容基本可控制在一页 A4 内。'; else if (ratio <= 1.35) pageWarning.textContent = '提示：当前内容略超一页，建议精简 1-2 个条目或 bullet。'; else pageWarning.textContent = '提示：当前内容明显超过一页，导出时将自动分页，建议切换模板或精简内容。'; pageWarning.classList.remove('hidden'); }
 
 function openMobileDrawer(title, html) { const drawer = document.getElementById('mobile-drawer'); document.getElementById('mobile-drawer-title').textContent = title; document.getElementById('mobile-drawer-content').innerHTML = html; drawer.classList.remove('hidden'); }
@@ -155,12 +191,46 @@ function closeMobileDrawer() { document.getElementById('mobile-drawer').classLis
 function openMobilePreview() { const modal = document.getElementById('mobile-preview-modal'); const cloneWrap = document.getElementById('mobile-preview-clone'); cloneWrap.innerHTML = ''; const cloned = resumePage.cloneNode(true); cloneWrap.appendChild(cloned); modal.classList.remove('hidden'); }
 function closeMobilePreview() { document.getElementById('mobile-preview-modal').classList.add('hidden'); document.getElementById('mobile-preview-clone').innerHTML = ''; }
 function buildTemplateListHtml() { return TEMPLATE_META ? Object.entries(TEMPLATE_META).map(([key, meta]) => `<button class="btn mobile-template-option" data-template="${key}" style="width:100%;margin-bottom:10px;">${meta.name}</button>`).join('') : ''; }
-function buildMoreMenuHtml() { return `<div class="section-actions" style="display:grid;gap:10px;"><button class="btn mobile-open-advanced">打开高级设置</button><button class="btn mobile-export-json">导出 JSON</button><button class="btn mobile-export-jsonresume">导出 JSON Resume</button><button class="btn btn-danger mobile-reset">清空全部数据</button></div>`; }
+function buildMoreMenuHtml() { const t = state.settings.typography || { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; return `<div class="section-actions" style="display:grid;gap:10px;">
+  <div class="panel-title" style="margin:0;">简历排版设置 / Resume Layout</div>
+  <label class="control-label">排版密度</label>
+  <select class="input mobile-typography-control" data-typography-key="density">
+    <option value="compact" ${t.density === 'compact' ? 'selected' : ''}>compact / 紧凑</option>
+    <option value="standard" ${t.density === 'standard' ? 'selected' : ''}>standard / 标准</option>
+    <option value="spacious" ${t.density === 'spacious' ? 'selected' : ''}>spacious / 舒展</option>
+  </select>
+  <label class="control-label">字体大小</label>
+  <select class="input mobile-typography-control" data-typography-key="fontSize">
+    <option value="small" ${t.fontSize === 'small' ? 'selected' : ''}>small / 小</option>
+    <option value="standard" ${t.fontSize === 'standard' ? 'selected' : ''}>standard / 标准</option>
+    <option value="large" ${t.fontSize === 'large' ? 'selected' : ''}>large / 大</option>
+  </select>
+  <label class="control-label">页边距</label>
+  <select class="input mobile-typography-control" data-typography-key="margin">
+    <option value="narrow" ${t.margin === 'narrow' ? 'selected' : ''}>narrow / 窄</option>
+    <option value="standard" ${t.margin === 'standard' ? 'selected' : ''}>standard / 标准</option>
+    <option value="wide" ${t.margin === 'wide' ? 'selected' : ''}>wide / 宽</option>
+  </select>
+  <label class="control-label">强调色</label>
+  <select class="input mobile-typography-control" data-typography-key="accent">
+    <option value="theme" ${t.accent === 'theme' ? 'selected' : ''}>theme / 跟随主题</option>
+    <option value="black" ${t.accent === 'black' ? 'selected' : ''}>black / 黑色</option>
+    <option value="blue" ${t.accent === 'blue' ? 'selected' : ''}>blue / 蓝色</option>
+    <option value="purple" ${t.accent === 'purple' ? 'selected' : ''}>purple / 紫色</option>
+  </select>
+  <button class="btn mobile-typography-reset">重置排版</button>
+  <button class="btn mobile-open-preview">查看预览</button>
+  <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
+  <button class="btn mobile-open-advanced">打开高级设置</button>
+  <button class="btn mobile-export-json">导出 JSON</button>
+  <button class="btn mobile-export-jsonresume">导出 JSON Resume</button>
+  <button class="btn btn-danger mobile-reset">清空全部数据</button>
+</div>`; }
 
 function handleAction(action, target) { const moduleKey = target.dataset.module, itemId = target.dataset.item, bulletIndex = Number(target.dataset.bullet); if (action === 'collapse-module') state.modules[moduleKey].collapsed = !state.modules[moduleKey].collapsed; if (action === 'add-item') state.modules[moduleKey].items.push(createItemByModule(moduleKey)); if (action === 'delete-item' && confirm('确认删除这条经历/条目？删除后不可恢复。')) state.modules[moduleKey].items = state.modules[moduleKey].items.filter(i => i.id !== itemId); if (action === 'add-bullet') getItem(moduleKey, itemId).bullets.push(createBullet('', true)); if (action === 'delete-bullet' && confirm('确认删除这个 bullet？')) getItem(moduleKey, itemId).bullets.splice(bulletIndex, 1); if (action === 'move-module-up') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i - 1); state.settings.moduleOrder = order; } if (action === 'move-module-down') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i + 1); state.settings.moduleOrder = order; } if (action === 'move-item-up') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i - 1); } if (action === 'move-item-down') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i + 1); } if (action === 'move-bullet-up') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex - 1); if (action === 'move-bullet-down') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex + 1); if (action === 'clear-avatar') { const avatar = state.modules.personalInfo.fields.avatar; avatar.value = ''; avatar.visible = false; } render(); }
 
-document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') exportPDF(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') exportPDF(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } });
-window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); } });
+document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') exportPDF(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') exportPDF(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } if (e.target.classList.contains('mobile-typography-reset')) { state.settings.typography = { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; closeMobileDrawer(); applySettings(); renderPreview(); saveState(); } if (e.target.classList.contains('mobile-open-preview')) { closeMobileDrawer(); openMobilePreview(); } });
+window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); return; } if (t.classList.contains('mobile-typography-control')) { const key = t.dataset.typographyKey; state.settings.typography[key] = t.value; renderPreview(); saveState(); return; } });
 window.addEventListener('input', (e) => {
   const t = e.target, action = t.dataset.action;
   if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; updatePreviewOnly(); return; }
@@ -292,6 +362,17 @@ document.getElementById('export-pdf-btn')?.addEventListener('click', exportPDF);
 document.getElementById('mobile-export-btn')?.addEventListener('click', exportPDF);
 document.getElementById('mobile-preview-export')?.addEventListener('click', exportPDF);
 document.getElementById('export-json-btn').addEventListener('click', () => { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'modular-resume-data.json'; a.click(); URL.revokeObjectURL(url); });
+
+document.getElementById('typography-density')?.addEventListener('change', (e) => { state.settings.typography.density = e.target.value; renderPreview(); saveState(); });
+document.getElementById('typography-font-size')?.addEventListener('change', (e) => { state.settings.typography.fontSize = e.target.value; renderPreview(); saveState(); });
+document.getElementById('typography-margin')?.addEventListener('change', (e) => { state.settings.typography.margin = e.target.value; renderPreview(); saveState(); });
+document.getElementById('typography-accent')?.addEventListener('change', (e) => { state.settings.typography.accent = e.target.value; renderPreview(); saveState(); });
+document.getElementById('typography-reset-btn')?.addEventListener('click', () => {
+  state.settings.typography = { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' };
+  applySettings();
+  renderPreview();
+  saveState();
+});
 document.getElementById('export-jsonresume-btn').addEventListener('click', () => { const blob = new Blob([JSON.stringify(exportJsonResume(), null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'resume.json'; a.click(); URL.revokeObjectURL(url); });
 document.getElementById('import-json-input').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { state = deepMerge(defaultState(), JSON.parse(await file.text())); state.settings.moduleOrder = normalizeOrder(state.settings.moduleOrder); if (!state.settings.languageMode) state.settings.languageMode = 'zh'; render(); alert('JSON 导入成功。'); } catch { alert('导入失败：JSON 格式不正确。'); } e.target.value = ''; });
 document.getElementById('import-jsonresume-input').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { importJsonResume(JSON.parse(await file.text())); alert('JSON Resume 导入成功。'); } catch { alert('导入失败：JSON Resume 格式不正确。'); } e.target.value = ''; });
