@@ -195,28 +195,27 @@ function getPdfFileName() {
   return buildDefaultPdfFileName();
 }
 
-async function exportPDF() {
-  console.log('[exportPDF] start');
+function isIOSSafari() {
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  return isIOS && isSafari;
+}
 
+async function exportPDF() {
   const element = document.getElementById('resume-page');
+
   if (!element) {
     alert('未找到简历预览区域。');
     return;
   }
 
-  const fileName = getPdfFileName();
-  const ua = navigator.userAgent || '';
-  const isIOSSafari = /iP(hone|ad|od)/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
-
-  console.log('[exportPDF] filename:', fileName);
-  console.log('[exportPDF] is iOS Safari:', isIOSSafari);
-  console.log('[exportPDF] html2pdf type:', typeof html2pdf);
-  console.log('[exportPDF] target:', element);
-
   if (typeof html2pdf === 'undefined') {
     alert('PDF 导出库未加载，请使用“浏览器打印导出”。');
     return;
   }
+
+  const fileName = getPdfFileName();
 
   const options = {
     margin: 0,
@@ -241,44 +240,40 @@ async function exportPDF() {
   };
 
   try {
+    console.log('[exportPDF] start');
+    console.log('[exportPDF] filename:', fileName);
+    console.log('[exportPDF] html2pdf type:', typeof html2pdf);
+    console.log('[exportPDF] iOS Safari:', isIOSSafari());
+
     const worker = html2pdf().set(options).from(element).toPdf();
     const pdf = await worker.get('pdf');
     const blob = pdf.output('blob');
     const file = new File([blob], fileName, { type: 'application/pdf' });
 
-    if (isIOSSafari && navigator.canShare && navigator.share) {
-      try {
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: fileName });
-          console.log('[exportPDF] shared via iOS share sheet:', fileName);
-          return;
-        }
-      } catch (shareError) {
-        console.warn('[exportPDF] share failed, fallback to download/preview:', shareError);
-      }
-    }
-
-    try {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      console.log('[exportPDF] download triggered:', fileName);
+    if (isIOSSafari() && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: fileName,
+        text: 'Resume PDF'
+      });
       return;
-    } catch (downloadError) {
-      console.warn('[exportPDF] anchor download failed:', downloadError);
     }
 
-    const previewUrl = URL.createObjectURL(blob);
-    window.open(previewUrl, '_blank');
-    console.log('[exportPDF] fallback opened blob preview:', fileName);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
   } catch (error) {
     console.error('[exportPDF] failed:', error);
-    alert('PDF 导出失败，请检查 Console，或使用“浏览器打印导出”。');
+    alert('PDF 导出失败，请使用“浏览器打印导出”。');
   }
 }
 
