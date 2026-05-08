@@ -74,35 +74,35 @@
           <div id="module-order-list" class="module-order-list"></div>
 
           <div class="layout-settings-block">
-            <div class="panel-title" style="margin-top:8px;">简历排版设置 / Resume Layout</div>
+            <div class="panel-title" style="margin-top:8px;">简历排版设置</div>
 
             <label class="control-label">排版密度</label>
             <select id="typography-density" class="input">
-              <option value="compact">compact / 紧凑</option>
-              <option value="standard">standard / 标准</option>
-              <option value="spacious">spacious / 舒展</option>
+              <option value="compact">紧凑</option>
+              <option value="standard">标准</option>
+              <option value="spacious">舒展</option>
             </select>
 
             <label class="control-label">字体大小</label>
             <select id="typography-font-size" class="input">
-              <option value="small">small / 小</option>
-              <option value="standard">standard / 标准</option>
-              <option value="large">large / 大</option>
+              <option value="small">小</option>
+              <option value="standard">标准</option>
+              <option value="large">大</option>
             </select>
 
             <label class="control-label">页边距</label>
             <select id="typography-margin" class="input">
-              <option value="narrow">narrow / 窄</option>
-              <option value="standard">standard / 标准</option>
-              <option value="wide">wide / 宽</option>
+              <option value="narrow">窄</option>
+              <option value="standard">标准</option>
+              <option value="wide">宽</option>
             </select>
 
             <label class="control-label">强调色</label>
             <select id="typography-accent" class="input">
-              <option value="theme">theme / 跟随主题</option>
-              <option value="black">black / 黑色</option>
-              <option value="blue">blue / 蓝色</option>
-              <option value="purple">purple / 紫色</option>
+              <option value="theme">跟随主题</option>
+              <option value="black">黑色</option>
+              <option value="blue">蓝色</option>
+              <option value="purple">紫色</option>
             </select>
 
             <div class="button-grid">
@@ -131,7 +131,8 @@
       <div class="editor-header">
         <div>
           <h2>问卷式填写区</h2>
-          <p>取消勾选 ≠ 删除。隐藏只是 visible=false，数据仍保留在信息池。</p>
+          <p class="desktop-only-tip">勾选表示显示在简历中；关闭后只隐藏，不会删除已填写内容。</p>
+          <p class="mobile-only-tip">关闭后内容会保留。</p>
         </div>
       </div>
       <div id="editor-content" class="editor-content"></div>

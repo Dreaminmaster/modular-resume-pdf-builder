@@ -123,6 +123,8 @@ input[type="range"] { width: 100%; }
 .bullet-row textarea { min-height: 74px; }
 .section-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .hidden { display: none !important; }
+.desktop-only-tip { display: block; }
+.mobile-only-tip { display: none; }
 
 .avatar-uploader { display: grid; gap: 10px; }
 .avatar-preview {
@@ -311,6 +313,8 @@ input[type="range"] { width: 100%; }
 }
 
 @media (max-width: 900px) {
+  .desktop-only-tip { display: none; }
+  .mobile-only-tip { display: block; }
   body { padding-bottom: 84px; }
   .sidebar { position: static; max-height: none; overflow: visible; }
   .editor { position: static; max-height: none; overflow: visible; }
