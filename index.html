@@ -130,7 +130,7 @@
     <main class="editor no-print">
       <div class="editor-header">
         <div>
-          <h2>问卷式填写区</h2>
+          <h2>填写内容</h2>
           <p class="desktop-only-tip">勾选表示显示在简历中；关闭后只隐藏，不会删除已填写内容。</p>
           <p class="mobile-only-tip">关闭后内容会保留。</p>
         </div>
@@ -140,10 +140,12 @@
 
     <section class="preview-panel" id="preview-panel">
       <div class="preview-toolbar no-print">
-        <div>
-          <h2>实时预览</h2>
-          <p>当前模板：<span id="current-template-name">经典单栏中文模板</span></p>
-          <p>当前语言：<span id="current-language-name">中文模式</span></p>
+        <div class="preview-status-bar" id="preview-status-bar">
+          <span id="current-template-name">经典单栏中文模板</span>
+          <span class="status-sep">·</span>
+          <span id="current-language-name">中文模式</span>
+          <span class="status-sep">·</span>
+          <span id="current-page-status">A4 单页</span>
         </div>
       </div>
 
