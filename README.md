@@ -122,19 +122,27 @@ Your resume data stays in the browser unless you export it yourself.
 
 ## Changelog
 
-### v1.0.1 — current stable
+### v1.1.0 – Product Polish Release (2026-05-10)
+- **Product-Oriented UI Redesign:** Enhanced mobile-first experience, unified visuals, refined active state, and improved A4 preview polish.
+- **Improved User Flow & Clarity:** Simplified editor titles, streamlined status bar, removed developer terminology from UI, and adjusted default module visibility.
+- **Robust PDF Export:** Added customizable filename, optimized cross-platform compatibility (iOS Safari `navigator.share`), and ensured clean exported PDFs (no auxiliary UI).
+- **Demo Readiness:** Rewritten README as a product landing page and included four official demo datasets to showcase flexibility.
+
+### v1.0.1 – current stable (2026-05-07)
 - custom PDF filename input
 - resume content scope in sidebar
 - editor only shows selected modules
-- improved default visible modules
-- improved default personal information fields
+- adjusted default visible modules
+- adjusted default personal information fields
 - hidden module content remains preserved and restorable
 
-### v1.1.0 — Product Polish Release planned
-- product-facing README and demos
-- refined templates
-- stronger visual polish
-- better mobile product feel
+### v1.0.0 – Initial stable release (2026-05-06)
+- information pool editing
+- field / item / bullet visibility controls
+- multiple templates
+- live preview
+- PDF export
+- responsive desktop and mobile layout
 
 ---
 
