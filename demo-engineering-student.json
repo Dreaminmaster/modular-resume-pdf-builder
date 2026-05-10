@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "template": "engineering",
+    "languageMode": "zh",
+    "themeColor": "#6366f1",
+    "fontScale": 1,
+    "moduleOrder": ["personalInfo","education","internships","projects","research","awards","achievements","skills","certificates","languages","summary","links"],
+    "pdfFileName": "周景行_机械工程实习生_工程技术模板",
+    "typography": {
+      "density": "standard",
+      "fontSize": "standard",
+      "margin": "standard",
+      "accent": "theme"
+    }
+  },
+  "modules": {
+    "personalInfo": {
+      "visible": true,
+      "collapsed": false,
+      "fields": {
+        "name": {"label":"姓名","value":"周景行","visible":true},
+        "title": {"label":"求职意向","value":"机械工程实习生 / 自动化工程实习生","visible":true},
+        "phone": {"label":"电话","value":"138-0000-1234","visible":true},
+        "email": {"label":"邮箱","value":"zhoujx.demo@example.com","visible":true},
+        "location": {"label":"所在地","value":"上海","visible":true},
+        "website": {"label":"个人主页","value":"","visible":false},
+        "gender": {"label":"性别","value":"","visible":false},
+        "birth": {"label":"出生年月","value":"","visible":false},
+        "political": {"label":"政治面貌","value":"","visible":false},
+        "avatar": {"label":"头像","value":"","visible":false}
+      }
+    },
+    "education": {"visible":true,"collapsed":false,"items":[{"id":"edu1","visible":true,"school":{"label":"学校","value":"同济大学","visible":true},"degree":{"label":"学历/学位","value":"本科","visible":true},"major":{"label":"专业","value":"机械工程","visible":true},"date":{"label":"时间","value":"2022.09 - 2026.06","visible":true},"location":{"label":"地点","value":"上海","visible":true},"bullets":[{"value":"主修机械设计、工程制图、制造工艺学、自动控制原理。","visible":true},{"value":"完成多门结构设计与工程仿真课程项目。","visible":true}]}]},
+    "internships": {"visible":true,"collapsed":false,"items":[{"id":"int1","visible":true,"name":{"label":"名称","value":"生产工艺实习","visible":true},"role":{"label":"岗位/角色","value":"工艺实习生","visible":true},"org":{"label":"单位/平台","value":"某智能制造企业","visible":true},"date":{"label":"时间","value":"2025.07 - 2025.08","visible":true},"location":{"label":"地点","value":"苏州","visible":true},"bullets":[{"value":"跟随工程师梳理装配工序，记录关键工位节拍与常见问题。","visible":true},{"value":"协助整理工艺流程说明和现场问题清单。","visible":true},{"value":"参与简单工装改进讨论并输出记录文档。","visible":true}]}]},
+    "projects": {"visible":true,"collapsed":false,"items":[{"id":"pro1","visible":true,"name":{"label":"名称","value":"搬运机械臂结构优化项目","visible":true},"role":{"label":"岗位/角色","value":"项目成员","visible":true},"org":{"label":"单位/平台","value":"课程设计项目","visible":true},"date":{"label":"时间","value":"2025.03 - 2025.06","visible":true},"location":{"label":"地点","value":"上海","visible":true},"bullets":[{"value":"负责末端执行器与支撑结构建模。","visible":true},{"value":"使用 SolidWorks 输出装配图和工程图。","visible":true},{"value":"对三版方案进行结构对比与可制造性检查。","visible":true}]}]},
+    "research": {"visible":false,"collapsed":false,"items":[{"id":"res1","visible":true,"name":{"label":"名称","value":"机器人夹持结构实验","visible":true},"role":{"label":"岗位/角色","value":"研究助理","visible":true},"org":{"label":"单位/平台","value":"实验室","visible":true},"date":{"label":"时间","value":"2025.09 - 2025.12","visible":true},"location":{"label":"地点","value":"上海","visible":true},"bullets":[{"value":"参与样件测试与实验记录整理。","visible":true}]}]},
+    "awards": {"visible":false,"collapsed":false,"items":[{"id":"aw1","visible":true,"title":{"label":"奖项名称","value":"校级机械创新设计二等奖","visible":true},"issuer":{"label":"颁发单位","value":"学院","visible":true},"date":{"label":"时间","value":"2024.11","visible":true},"bullets":[{"value":"负责结构说明与现场答辩。","visible":true}]}]},
+    "achievements": {"visible":true,"collapsed":false,"items":[{"id":"ach1","visible":true,"title":{"label":"成果名称","value":"机械臂课程设计图纸与结构说明书","visible":true},"type":{"label":"类型","value":"课程成果","visible":true},"date":{"label":"时间","value":"2025.06","visible":true},"status":{"label":"状态","value":"已完成","visible":true},"bullets":[{"value":"包含结构方案、装配关系和工程图输出。","visible":true}]}]},
+    "skills": {"visible":true,"collapsed":false,"items":[{"id":"sk1","visible":true,"category":{"label":"技能分类","value":"工程软件","visible":true},"content":{"label":"技能内容","value":"SolidWorks、AutoCAD、MATLAB、Office","visible":true},"bullets":[]},{"id":"sk2","visible":true,"category":{"label":"技能分类","value":"编程基础","visible":true},"content":{"label":"技能内容","value":"Python、C 语言","visible":true},"bullets":[]}]},
+    "certificates": {"visible":true,"collapsed":false,"items":[{"id":"ce1","visible":true,"name":{"label":"证书名称","value":"全国计算机二级","visible":true},"issuer":{"label":"颁发机构","value":"教育部考试中心","visible":true},"date":{"label":"时间","value":"2024.03","visible":true},"bullets":[]}]},
+    "languages": {"visible":false,"collapsed":false,"items":[{"id":"la1","visible":true,"language":{"label":"语言","value":"英语","visible":true},"level":{"label":"水平","value":"CET-4","visible":true},"bullets":[]}]},
+    "summary": {"visible":false,"collapsed":false,"fields":{"summary":{"label":"自我评价","value":"","visible":false}}},
+    "links": {"visible":false,"collapsed":false,"items":[{"id":"li1","visible":true,"title":{"label":"链接名称","value":"作品集","visible":true},"url":{"label":"链接地址","value":"https://portfolio.example.com/engineering-demo","visible":true},"desc":{"label":"说明","value":"机械结构课程项目合集","visible":true},"bullets":[]}]} 
+  }
+}
