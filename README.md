@@ -88,6 +88,15 @@ Prepare English-first versions without rebuilding the entire resume from scratch
 
 ---
 
+## Demo datasets
+
+- [Engineering Student Demo](minis://workspace/demo-engineering-student.json)
+- [Product Manager Demo](minis://workspace/demo-product-manager.json)
+- [Study Abroad Demo](minis://workspace/demo-study-abroad.json)
+- [English Resume Demo](minis://workspace/demo-english-resume.json)
+
+---
+
 ## Demo screenshots
 
 ### Editor
