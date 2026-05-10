@@ -1,8 +1,8 @@
 # Modular Resume PDF Builder
 
-One information pool. Multiple tailored resumes.
+[中文说明](README_ZH.md)
 
-一份信息池，多份定制简历。
+One information pool. Multiple tailored resumes.
 
 [Live Demo](https://dreaminmaster.github.io/modular-resume-pdf-builder/) · [GitHub](https://github.com/Dreaminmaster/modular-resume-pdf-builder) · Version: unreleased pre-v1.1.0 · License: MIT
 
@@ -86,31 +86,6 @@ Prepare a cleaner English-first version without rebuilding everything from scrat
 - no backend
 - no account
 - data stays in your browser unless you export it
-
----
-
-## 中文说明
-
-### 这是什么
-这不是固定模板填空器。
-
-它是一个基于“信息池”思路的简历工具：
-- 先填写完整信息池
-- 再选择本次简历要显示的内容
-- 最后切换模板并导出 PDF
-
-### 它适合谁
-- 需要针对不同岗位快速定制简历的人
-- 工程学生
-- 产品经理求职者
-- 留学申请用户
-- 需要英文简历的人
-
-### 核心价值
-不是反复重写简历，
-而是基于一份完整信息池，快速组合出多份不同版本。
-
-**一份信息池，多份定制简历。**
 
 ---
 
