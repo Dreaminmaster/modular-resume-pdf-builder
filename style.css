@@ -86,9 +86,9 @@ a { color: inherit; }
 }
 .module-nav-item a { color: var(--text); text-decoration: none; font-weight: 500; }
 .module-nav-item.active {
-  background: #ffffff;
-  border-color: rgba(99, 102, 241, 0.14);
-  box-shadow: inset 3px 0 0 0 var(--primary), var(--shadow-soft);
+  background: color-mix(in srgb, var(--primary) 5%, white);
+  border-color: rgba(99, 102, 241, 0.12);
+  box-shadow: inset 3px 0 0 0 var(--primary);
 }
 .module-nav-item.active a {
   font-weight: 600;

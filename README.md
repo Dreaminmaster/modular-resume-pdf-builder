@@ -1,112 +1,83 @@
 # Modular Resume PDF Builder
 
-**中文：一份信息池，多份定制简历。**  
-**English: One information pool. Multiple tailored resumes.**
+One information pool. Multiple tailored resumes.
 
-[Live Demo](https://dreaminmaster.github.io/modular-resume-pdf-builder/) · [GitHub](https://github.com/Dreaminmaster/modular-resume-pdf-builder)
+一份信息池，多份定制简历。
 
----
+[Live Demo](https://dreaminmaster.github.io/modular-resume-pdf-builder/) · [GitHub](https://github.com/Dreaminmaster/modular-resume-pdf-builder) · Version: unreleased pre-v1.1.0 · License: MIT
 
-## What it is
-
-Modular Resume PDF Builder is not a traditional resume form that starts from a fixed template.
-
-It starts from your **information pool**.
-
-You keep all your resume content in one place, choose what should appear for the current opportunity, switch layouts, and export a tailored PDF.
-
-This makes it easier to build multiple versions of your resume without rewriting everything again and again.
+![Desktop Editor](docs/desktop-editor.png)
 
 ---
 
-## Core idea
+## Why this project exists
 
-Most resume tools ask you to fill in a template.
+Most resume tools start from a fixed template.
 
-This project works in the opposite direction:
+This project starts from your content.
 
-- keep a full information pool
-- choose the content scope for the current role
-- export the selected content with a chosen layout
+You keep a complete resume information pool, choose what should appear for one specific application, switch layouts, and export a tailored PDF.
 
-In short:
-
-**Information pool + visibility control + template export**
+It is designed for people who need multiple resume versions without rewriting the same material again and again.
 
 ---
 
-## How it works
+## Workflow
 
 ### 1. Fill your information pool
-Write down your complete education, internships, projects, skills, links, and other materials once.
+Write down your education, internships, projects, awards, skills, links, and other materials once.
 
 ### 2. Choose what to show
-Turn modules, fields, entries, and key points on or off depending on the role you are targeting.
+Show or hide modules, fields, entries, and description points for the current role.
+
+Hidden content is preserved. It is not deleted.
 
 ### 3. Export a tailored resume
-Pick a template, preview the result, and export a clean PDF.
+Choose a layout, preview the result in real time, and export a clean PDF.
 
 ---
 
-## Key features
+## Features
 
-### Information pool
-Store your full resume content in one structured place.
-
-### Module / field / key-point visibility control
-Control what appears in the final resume without deleting the underlying content.
-
-### Multiple templates
-Use the same information pool across different resume layouts.
-
-### Live preview
-See the resume update instantly while editing.
-
-### PDF export
-Export the resume as a PDF directly from the browser.
-
-### Mobile support
-Edit and preview on mobile, with simplified actions for export and settings.
+- **Information pool** — keep all resume content in one place
+- **Show or hide content** — tailor one version without losing other content
+- **Multiple templates** — switch layouts without rewriting the resume
+- **Live preview** — see the A4 result while editing
+- **PDF export** — export only the resume page
+- **Mobile support** — edit, preview, and export on phone
+- **Data stays in your browser** — no account and no backend required
 
 ---
 
 ## Use cases
 
-This project is especially useful for users who need multiple resume versions from the same base content.
+### Engineering student
+Highlight projects, technical skills, internships, and engineering results.
 
-### Engineering students
-Highlight projects, internships, technical skills, and structured experience.
+### Product manager
+Emphasize selected projects, outcomes, portfolio links, and role fit.
 
-### Product managers
-Focus on selected projects, role fit, outcomes, and portfolio links.
+### Study abroad application
+Organize education, research, achievements, and language-related content in one place.
 
-### Study abroad applications
-Keep academic, research, and language-related materials in one place and export targeted versions.
-
-### English resumes
-Prepare English-first versions without rebuilding the entire resume from scratch.
+### English resume
+Prepare a cleaner English-first version without rebuilding everything from scratch.
 
 ---
 
-## Demo datasets
+## Screenshots
 
-- [Engineering Student Demo](minis://workspace/demo-engineering-student.json)
-- [Product Manager Demo](minis://workspace/demo-product-manager.json)
-- [Study Abroad Demo](minis://workspace/demo-study-abroad.json)
-- [English Resume Demo](minis://workspace/demo-english-resume.json)
+### Desktop editor
+![Desktop Editor](docs/desktop-editor.png)
 
----
+### Mobile editor
+![Mobile Editor](docs/mobile-editor.png)
 
-## Demo screenshots
+### PDF preview
+![PDF Preview](docs/pdf-preview.png)
 
-### Editor
-![Editor Screenshot](docs/screenshot-editor.png)
-
-### Template & Settings
-![Template Screenshot](docs/screenshot-templates.png)
-
-### Live Preview
-![Preview Screenshot](docs/screenshot-preview.png)
+### Template and export settings
+![Template Export](docs/template-export.png)
 
 ---
 
@@ -114,58 +85,21 @@ Prepare English-first versions without rebuilding the entire resume from scratch
 
 - no backend
 - no account
-- local browser storage
-
-Your resume data stays in the browser unless you export it yourself.
+- data stays in your browser unless you export it
 
 ---
 
-## Changelog
-
-### v1.1.0 – Product Polish Release (2026-05-10)
-- **Product-Oriented UI Redesign:** Enhanced mobile-first experience, unified visuals, refined active state, and improved A4 preview polish.
-- **Improved User Flow & Clarity:** Simplified editor titles, streamlined status bar, removed developer terminology from UI, and adjusted default module visibility.
-- **Robust PDF Export:** Added customizable filename, optimized cross-platform compatibility (iOS Safari `navigator.share`), and ensured clean exported PDFs (no auxiliary UI).
-- **Demo Readiness:** Rewritten README as a product landing page and included four official demo datasets to showcase flexibility.
-
-### v1.0.1 – current stable (2026-05-07)
-- custom PDF filename input
-- resume content scope in sidebar
-- editor only shows selected modules
-- adjusted default visible modules
-- adjusted default personal information fields
-- hidden module content remains preserved and restorable
-
-### v1.0.0 – Initial stable release (2026-05-06)
-- information pool editing
-- field / item / bullet visibility controls
-- multiple templates
-- live preview
-- PDF export
-- responsive desktop and mobile layout
-
----
-
-## Roadmap
-
-- more templates
-- color presets
-- demo data
-- AI tailoring later
-
----
-
-## 中文补充说明
+## 中文说明
 
 ### 这是什么
-这是一个基于“信息池”思路的简历工具。
+这不是固定模板填空器。
 
-它不是固定模板填空器，而是：
+它是一个基于“信息池”思路的简历工具：
 - 先填写完整信息池
-- 再勾选本次简历需要显示的内容
-- 最后选择模板并导出 PDF
+- 再选择本次简历要显示的内容
+- 最后切换模板并导出 PDF
 
-### 适合谁
+### 它适合谁
 - 需要针对不同岗位快速定制简历的人
 - 工程学生
 - 产品经理求职者
@@ -173,7 +107,37 @@ Your resume data stays in the browser unless you export it yourself.
 - 需要英文简历的人
 
 ### 核心价值
-不是重复重写简历，
+不是反复重写简历，
 而是基于一份完整信息池，快速组合出多份不同版本。
 
 **一份信息池，多份定制简历。**
+
+---
+
+## Changelog
+
+### Current status
+- project is ready for release polishing
+- v1.1.0 is prepared but not tagged yet
+
+### Recent updates
+- improved mobile editing / preview / export flow
+- polished sidebar and A4 preview experience
+- added customizable PDF filename
+- added four official demo datasets
+- updated README toward a product-style homepage
+
+---
+
+## Roadmap
+
+- more templates
+- better screenshot assets for README
+- stronger demo and onboarding experience
+- optional AI tailoring later
+
+---
+
+## License
+
+MIT
