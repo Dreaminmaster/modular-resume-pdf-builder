@@ -110,18 +110,27 @@
             </div>
           </div>
 
-          <div class="button-grid">
-            <button id="export-json-btn" class="btn">导出 JSON</button>
-            <button id="export-jsonresume-btn" class="btn">导出 JSON Resume</button>
-            <label class="btn btn-file">
-              导入 JSON
-              <input id="import-json-input" type="file" accept="application/json" hidden />
-            </label>
-            <label class="btn btn-file">
-              导入 JSON Resume
-              <input id="import-jsonresume-input" type="file" accept="application/json" hidden />
-            </label>
-            <button id="reset-btn" class="btn btn-danger">清空全部数据</button>
+          <div class="layout-settings-block">
+            <div class="panel-title" style="margin-top:8px;">数据备份</div>
+            <div class="button-grid">
+              <button id="export-json-btn" class="btn">导出 JSON</button>
+              <label class="btn btn-file">
+                导入 JSON
+                <input id="import-json-input" type="file" accept=".json,application/json" hidden />
+              </label>
+              <button id="reset-btn" class="btn btn-danger">清空数据</button>
+            </div>
+          </div>
+
+          <div class="layout-settings-block">
+            <div class="panel-title" style="margin-top:8px;">JSON Resume</div>
+            <div class="button-grid">
+              <button id="export-jsonresume-btn" class="btn">导出 JSON Resume</button>
+              <label class="btn btn-file">
+                导入 JSON Resume
+                <input id="import-jsonresume-input" type="file" accept=".json,application/json" hidden />
+              </label>
+            </div>
           </div>
         </details>
       </div>
