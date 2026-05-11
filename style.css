@@ -353,6 +353,77 @@ input[type="range"] { width: 100%; }
 .template-product .plain-list { gap: 8px; }
 .template-product a { color: color-mix(in srgb, var(--resume-accent-color) 88%, black); text-decoration: none; font-weight: 600; }
 
+.template-compact-cn {
+  --resume-body-size: 12.4px;
+  --resume-name-size: 25px;
+  --resume-section-title-size: 13px;
+  --resume-line-height: 1.42;
+  --resume-section-gap: 11px;
+  --resume-page-padding: 22px 26px;
+}
+.template-compact-cn .resume-header { border-bottom: 1.5px solid var(--resume-border-color); padding-bottom: 8px; margin-bottom: 12px; }
+.template-compact-cn .resume-headline { gap: 4px 10px; font-size: 0.96em; }
+.template-compact-cn .section-title { padding-bottom: 4px; margin-bottom: 8px; letter-spacing: 0.02em; }
+.template-compact-cn .entry { margin-bottom: 8px; }
+.template-compact-cn .entry-subtitle { font-size: 0.97em; }
+.template-compact-cn ul { margin-top: 4px; }
+.template-compact-cn li { margin-bottom: 2px; }
+.template-compact-cn .plain-list { gap: 4px; }
+.template-compact-cn .chips { gap: 6px; }
+.template-compact-cn .chip { padding: 3px 8px; font-size: 0.88em; }
+
+.template-ats-en {
+  --resume-accent-color: #111827;
+  --resume-border-color: #d1d5db;
+  --resume-headline-color: #4b5563;
+  --resume-subtitle-color: #1f2937;
+  --resume-muted-color: #6b7280;
+  --resume-helper-color: #9ca3af;
+  --resume-body-size: 12.8px;
+  --resume-name-size: 29px;
+  --resume-section-title-size: 12.5px;
+  --resume-line-height: 1.48;
+  --resume-section-gap: 14px;
+  --resume-page-padding: 30px 34px;
+}
+.template-ats-en .resume-header { border-bottom: 1px solid #d1d5db; padding-bottom: 10px; margin-bottom: 14px; }
+.template-ats-en .resume-name { letter-spacing: 0.01em; }
+.template-ats-en .resume-headline { gap: 4px 10px; }
+.template-ats-en .section-title {
+  border-bottom: none;
+  color: #111827;
+  padding-bottom: 0;
+  margin-bottom: 8px;
+  letter-spacing: 0.08em;
+}
+.template-ats-en .entry { margin-bottom: 10px; }
+.template-ats-en .entry-title { font-weight: 650; }
+.template-ats-en .chip { background: #fff; border-color: #d1d5db; color: #111827; }
+.template-ats-en a { color: #111827; text-decoration: none; }
+.template-ats-en .helper-text { color: #9ca3af; }
+
+.template-engineering-project {
+  --resume-section-gap: 14px;
+  --resume-border-color: color-mix(in srgb, var(--resume-accent-color) 38%, #cbd5e1);
+  --resume-page-padding: 26px 30px;
+}
+.template-engineering-project .resume-header {
+  border-bottom: 2px solid var(--resume-border-color);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+.template-engineering-project .resume-name { letter-spacing: 0.015em; }
+.template-engineering-project .section-title { border-bottom-width: 2px; letter-spacing: 0.05em; }
+.template-engineering-project .entry { margin-bottom: 11px; }
+.template-engineering-project .entry-title { color: color-mix(in srgb, var(--primary) 82%, black); }
+.template-engineering-project .chips { gap: 6px; }
+.template-engineering-project .chip {
+  background: color-mix(in srgb, var(--primary) 9%, white);
+  border-color: color-mix(in srgb, var(--primary) 28%, #cbd5e1);
+  font-weight: 600;
+}
+.template-engineering-project .plain-list { gap: 7px; }
+
 .template-academic {
   --resume-accent-color: #0f172a;
   --resume-border-color: #cbd5e1;
