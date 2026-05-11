@@ -215,6 +215,11 @@ input[type="range"] { width: 100%; }
   --resume-section-gap: 16px;
   --resume-page-padding: 28px 34px;
   --resume-accent-color: var(--primary);
+  --resume-border-color: color-mix(in srgb, var(--resume-accent-color) 24%, #cbd5e1);
+  --resume-headline-color: #4b5563;
+  --resume-subtitle-color: #374151;
+  --resume-muted-color: #6b7280;
+  --resume-helper-color: #94a3b8;
   padding: var(--resume-page-padding);
   font-size: var(--resume-body-size);
   line-height: var(--resume-line-height);
@@ -223,7 +228,7 @@ input[type="range"] { width: 100%; }
 .resume-page .resume-header { margin-bottom: 18px; }
 .resume-page .resume-header.with-avatar { display: grid; grid-template-columns: 1fr 92px; gap: 16px; align-items: start; }
 .resume-page .resume-name { font-size: var(--resume-name-size); font-weight: 700; }
-.resume-page .resume-headline { margin-top: 8px; color: #374151; display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.resume-page .resume-headline { margin-top: 8px; color: var(--resume-headline-color); display: flex; flex-wrap: wrap; gap: 6px 12px; }
 .resume-page .contact-item { white-space: nowrap; }
 .resume-page .resume-avatar {
   width: 92px; height: 92px; border-radius: 14px; object-fit: cover; border: 1px solid #d1d5db; justify-self: end;
@@ -231,23 +236,24 @@ input[type="range"] { width: 100%; }
 .resume-page .resume-section { margin-top: var(--resume-section-gap); break-inside: avoid-page; page-break-inside: avoid; }
 .resume-page .section-title {
   font-size: var(--resume-section-title-size); text-transform: uppercase; letter-spacing: 0.04em;
-  font-weight: 700; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 2px solid var(--resume-accent-color); color: var(--resume-accent-color);
+  font-weight: 700; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 2px solid var(--resume-border-color); color: var(--resume-accent-color);
 }
 .resume-page .entry { margin-bottom: 12px; break-inside: avoid-page; page-break-inside: avoid; }
 .resume-page .entry-header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .resume-page .entry-title { font-weight: 700; }
-.resume-page .entry-subtitle { color: #374151; font-weight: 500; }
-.resume-page .entry-date { color: #6b7280; font-size: 0.95em; white-space: nowrap; }
+.resume-page .entry-subtitle { color: var(--resume-subtitle-color); font-weight: 500; }
+.resume-page .entry-date { color: var(--resume-muted-color); font-size: 0.95em; white-space: nowrap; }
 .resume-page ul { margin: 6px 0 0 18px; padding: 0; }
 .resume-page li { margin-bottom: 4px; break-inside: avoid-page; page-break-inside: avoid; }
 .resume-page .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .resume-page .chip {
-  display: inline-flex; align-items: center; border: 1px solid color-mix(in srgb, var(--resume-accent-color) 30%, white);
+  display: inline-flex; align-items: center; border: 1px solid color-mix(in srgb, var(--resume-accent-color) 22%, white);
   background: color-mix(in srgb, var(--resume-accent-color) 8%, white); color: #1f2937; border-radius: 999px; padding: 4px 10px;
   font-size: 0.92em;
 }
 .resume-page .plain-list { display: grid; gap: 6px; }
-.resume-page .summary { color: #374151; }
+.resume-page .summary { color: var(--resume-subtitle-color); }
+.resume-page .helper-text { color: var(--resume-helper-color); }
 .resume-page .page-footer {
   position: absolute; left: 34px; right: 34px; bottom: 16px; display: flex; justify-content: space-between; color: #94a3b8; font-size: 11px;
 }
@@ -273,43 +279,93 @@ input[type="range"] { width: 100%; }
 .resume-page.accent-blue { --resume-accent-color: #2563eb; }
 .resume-page.accent-purple { --resume-accent-color: #7c3aed; }
 
-.template-cn-classic .resume-header { border-bottom: 3px solid var(--primary); padding-bottom: 12px; }
-.template-cn-classic .resume-name { letter-spacing: 0.03em; }
-
-.template-en-minimal { padding: 40px 48px; }
-.template-en-minimal .resume-header { border-bottom: 1px solid #d1d5db; padding-bottom: 14px; }
-.template-en-minimal .resume-name { font-size: calc(30px * var(--font-scale)); letter-spacing: 0.02em; }
-.template-en-minimal .section-title { border-bottom-width: 1px; color: #111827; }
-.template-en-minimal .resume-headline { color: #4b5563; }
-
-.template-engineering .resume-header {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, white), white);
-  margin: -28px -34px 18px; padding: 28px 34px 18px; border-bottom: 2px solid var(--primary);
+.template-cn-classic {
+  --resume-line-height: 1.52;
+  --resume-section-gap: 14px;
+  --resume-name-size: 27px;
+  --resume-section-title-size: 14px;
 }
-.template-engineering .section-title { border-bottom-width: 3px; }
-.template-engineering .entry-title { color: color-mix(in srgb, var(--primary) 75%, black); }
+.template-cn-classic .resume-header { border-bottom: 2px solid var(--resume-border-color); padding-bottom: 10px; }
+.template-cn-classic .resume-name { letter-spacing: 0.02em; }
+.template-cn-classic .section-title { letter-spacing: 0.03em; font-weight: 680; }
+.template-cn-classic .entry { margin-bottom: 10px; }
+.template-cn-classic li { margin-bottom: 3px; }
+
+.template-en-minimal {
+  padding: 36px 42px;
+  --resume-accent-color: #111827;
+  --resume-border-color: #d1d5db;
+  --resume-headline-color: #4b5563;
+  --resume-subtitle-color: #1f2937;
+  --resume-muted-color: #6b7280;
+  --resume-helper-color: #9ca3af;
+  --resume-line-height: 1.5;
+  --resume-section-gap: 15px;
+}
+.template-en-minimal .resume-header { border-bottom: 1px solid #d1d5db; padding-bottom: 12px; }
+.template-en-minimal .resume-name { font-size: calc(30px * var(--font-scale)); letter-spacing: 0.015em; }
+.template-en-minimal .section-title { border-bottom-width: 1px; color: #111827; letter-spacing: 0.08em; }
+.template-en-minimal .entry-title { font-weight: 650; }
+.template-en-minimal .chip { border-color: #d1d5db; background: #fff; }
+
+.template-engineering {
+  --resume-section-gap: 15px;
+  --resume-border-color: color-mix(in srgb, var(--resume-accent-color) 36%, #cbd5e1);
+}
+.template-engineering .resume-header {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 7%, white), white 72%);
+  margin: -28px -34px 18px; padding: 24px 34px 16px; border-bottom: 2px solid var(--resume-border-color);
+}
+.template-engineering .section-title { border-bottom-width: 2px; letter-spacing: 0.05em; }
+.template-engineering .entry-title { color: color-mix(in srgb, var(--primary) 78%, black); }
+.template-engineering .chips { gap: 6px; }
+.template-engineering .chip {
+  background: color-mix(in srgb, var(--primary) 10%, white);
+  border-color: color-mix(in srgb, var(--primary) 24%, #d1d5db);
+  font-weight: 600;
+}
 
 .template-campus {
-  display: grid; grid-template-columns: 1fr 2.2fr; gap: 22px; padding: 0;
+  display: grid; grid-template-columns: minmax(190px, 0.9fr) minmax(0, 2.1fr); gap: 18px; padding: 0;
 }
 .template-campus .sidebar-col {
-  background: color-mix(in srgb, var(--primary) 10%, white); padding: 28px 22px; min-height: 1123px;
+  background: color-mix(in srgb, var(--primary) 6%, white); padding: 26px 20px; min-height: 1123px;
 }
-.template-campus .main-col { padding: 28px 30px 40px; }
-.template-campus .resume-header { margin-bottom: 20px; }
-.template-campus .section-title { border-bottom-width: 1px; }
+.template-campus .main-col { padding: 28px 28px 38px; }
+.template-campus .resume-header { margin-bottom: 16px; }
+.template-campus .section-title { border-bottom-width: 1px; letter-spacing: 0.03em; }
+.template-campus .sidebar-col .resume-section { margin-top: 13px; }
+.template-campus .main-col .resume-section { margin-top: 15px; }
 
-.template-product .resume-header { border-bottom: 2px solid var(--primary); padding-bottom: 14px; }
+.template-product {
+  --resume-accent-color: color-mix(in srgb, var(--primary) 82%, #111827);
+  --resume-border-color: color-mix(in srgb, var(--resume-accent-color) 30%, #d1d5db);
+  --resume-section-gap: 15px;
+}
+.template-product .resume-header { border-bottom: 2px solid var(--resume-border-color); padding-bottom: 12px; }
 .template-product .entry-title { font-size: 1.04em; }
-.template-product .resume-section { margin-top: 16px; }
-.template-product .chips .chip { background: color-mix(in srgb, var(--primary) 12%, white); }
+.template-product .entry-subtitle { font-weight: 600; }
+.template-product .resume-section { margin-top: 15px; }
+.template-product .chips .chip {
+  background: color-mix(in srgb, var(--primary) 10%, white);
+  border-color: color-mix(in srgb, var(--primary) 20%, #d1d5db);
+}
+.template-product .plain-list { gap: 8px; }
+.template-product a { color: color-mix(in srgb, var(--resume-accent-color) 88%, black); text-decoration: none; font-weight: 600; }
 
-.template-academic .resume-header { border-bottom: 1px solid #94a3b8; padding-bottom: 14px; }
+.template-academic {
+  --resume-accent-color: #0f172a;
+  --resume-border-color: #cbd5e1;
+  --resume-section-gap: 18px;
+  --resume-line-height: 1.6;
+}
+.template-academic .resume-header { border-bottom: 1px solid #cbd5e1; padding-bottom: 14px; }
 .template-academic .section-title {
-  border-bottom-width: 1px; color: #0f172a; letter-spacing: 0.08em;
+  border-bottom-width: 1px; color: #0f172a; letter-spacing: 0.1em; font-size: 14px;
 }
 .template-academic .entry-title { font-weight: 700; }
 .template-academic .summary, .template-academic .entry-subtitle { color: #334155; }
+.template-academic .entry { margin-bottom: 14px; }
 
 .mid-only { display: none; }
 .mobile-bar, .mobile-drawer, .mobile-preview-modal { display: none; }
@@ -398,6 +454,9 @@ input[type="range"] { width: 100%; }
   .mobile-preview-body { display: flex; justify-content: center; }
   .mobile-preview-body #mobile-preview-clone { width: 100%; }
   .mobile-preview-body .resume-page { transform: scale(0.55); transform-origin: top center; width: 794px; margin: 0 auto -460px; }
+  .mobile-preview-body .template-campus { display: block; }
+  .mobile-preview-body .template-campus .sidebar-col,
+  .mobile-preview-body .template-campus .main-col { min-height: auto; padding: 18px; background: #fff; }
 }
 
 @media (max-width: 1500px) {
