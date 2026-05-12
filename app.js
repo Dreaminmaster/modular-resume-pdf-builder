@@ -26,6 +26,15 @@ const TEMPLATE_META = {
   'product': { name: '产品经理模板', className: 'template-product', hint: '优先展示项目、实习、结果数据与作品链接。' },
   'academic': { name: '学术 CV 模板', className: 'template-academic', hint: '优先展示教育、科研、成果与获奖，适合学术申请。' }
 };
+const THEME_PRESETS = {
+  graphite: { name: 'Graphite', zhName: '黑灰', accent: '#1f2937', soft: '#f3f4f6', border: '#d1d5db' },
+  navy: { name: 'Navy', zhName: '深蓝', accent: '#1e3a8a', soft: '#eff6ff', border: '#bfdbfe' },
+  slate: { name: 'Slate', zhName: '蓝灰', accent: '#475569', soft: '#f1f5f9', border: '#cbd5e1' },
+  indigo: { name: 'Indigo', zhName: '靛蓝', accent: '#4338ca', soft: '#eef2ff', border: '#c7d2fe' },
+  forest: { name: 'Forest', zhName: '墨绿', accent: '#166534', soft: '#ecfdf5', border: '#bbf7d0' },
+  burgundy: { name: 'Burgundy', zhName: '酒红', accent: '#7f1d1d', soft: '#fef2f2', border: '#fecaca' }
+};
+
 const LANGUAGE_META = { zh: '中文模式', en: 'English Mode', bilingual: '中英双语标题' };
 const EXPERIENCE_KEYS = ['internships', 'projects', 'research'];
 const EN_HIDDEN_FIELDS = ['gender', 'birth', 'political', 'avatar'];
@@ -51,7 +60,7 @@ function createLinkItem() { return { id: uid('link'), visible: true, title: crea
 
 function defaultState() {
   return {
-    settings: { template: 'cn-classic', languageMode: 'zh', themeColor: '#2563eb', fontScale: 1, moduleOrder: BASE_MODULE_DEFS.map(x => x.key), pdfFileName: '', typography: { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' } },
+    settings: { template: 'cn-classic', theme: 'navy', languageMode: 'zh', themeColor: '#2563eb', fontScale: 1, moduleOrder: BASE_MODULE_DEFS.map(x => x.key), pdfFileName: '', typography: { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' } },
     modules: {
       personalInfo: { visible: true, collapsed: false, fields: {
         name: createField('姓名', '', true, '例如：张三'), title: createField('求职意向', '', true, '例如：机械工程师 / 产品经理 / Data Analyst'), phone: createField('电话', '', true, '例如：138-0000-0000'), email: createField('邮箱', '', true, '例如：name@email.com'), location: createField('所在地', '', true, '例如：上海'), website: createField('个人主页', '', false, '例如：https://portfolio.com'), gender: createField('性别', '', false, '例如：男 / 女'), birth: createField('出生年月', '', false, '例如：2001.08'), political: createField('政治面貌', '', false, '例如：中共党员'), avatar: createField('头像', '', false, '上传头像图片后自动写入')
@@ -73,6 +82,7 @@ const languageModeSelect = document.getElementById('language-mode');
 const currentTemplateName = document.getElementById('current-template-name');
 const currentLanguageName = document.getElementById('current-language-name');
 const themeColorInput = document.getElementById('theme-color');
+const themePresets = document.getElementById('theme-presets');
 const fontScaleInput = document.getElementById('font-scale');
 const fontScaleValue = document.getElementById('font-scale-value');
 const pageWarning = document.getElementById('page-warning');
@@ -84,8 +94,10 @@ function loadState() {
     if (!raw) return base;
     const merged = deepMerge(base, JSON.parse(raw));
     merged.settings.moduleOrder = normalizeOrder(merged.settings.moduleOrder);
-    if (!merged.settings.languageMode) merged.settings.languageMode = 'zh';
-    return merged;
+  if (!merged.settings.languageMode) merged.settings.languageMode = 'zh';
+  if (!merged.settings.theme || !THEME_PRESETS[merged.settings.theme]) merged.settings.theme = 'navy';
+  if (!merged.settings.themeColor) merged.settings.themeColor = THEME_PRESETS[merged.settings.theme].accent;
+  return merged;
   } catch {
     return defaultState();
   }
@@ -101,7 +113,7 @@ function moveInArray(arr, from, to) { if (from < 0 || to < 0 || from >= arr.leng
 function shouldHideFieldInTemplate(fieldKey) { return state.settings.template === 'en-minimal' && EN_HIDDEN_FIELDS.includes(fieldKey); }
 function isMeaningfullyEmpty() { const p = state.modules.personalInfo.fields; if ([p.name, p.title, p.phone, p.email, p.location, p.website, state.modules.summary.fields.summary].some(f => text(f.value))) return false; const listModules = ['education', 'internships', 'projects', 'research', 'awards', 'achievements', 'skills', 'certificates', 'languages', 'links']; return !listModules.some(k => state.modules[k].items.some(item => Object.values(item).some(v => v && typeof v === 'object' && 'value' in v && text(v.value)) || visibleBullets(item).length)); }
 
-function render() { applySettings(); renderNav(); renderOrderControls(); renderEditor(); renderPreview(); saveState(); }
+function render() { applySettings(); renderThemePresets(); renderNav(); renderOrderControls(); renderEditor(); renderPreview(); saveState(); }
 function updateModuleStatusIndicators() {
   const containers = [moduleNav, document.getElementById('mobile-module-status-list')].filter(Boolean);
   containers.forEach(container => {
@@ -115,7 +127,25 @@ function updateModuleStatusIndicators() {
   });
 }
 function updatePreviewOnly() { renderPreview(); updateModuleStatusIndicators(); saveState(); }
-function updateVisibilityOnly() { renderNav(); renderOrderControls(); renderEditor(); renderPreview(); saveState(); }
+function getActiveThemePreset() {
+  return THEME_PRESETS[state.settings.theme] || THEME_PRESETS.navy;
+}
+function renderThemePresets() {
+  const container = document.getElementById('theme-presets');
+  if (!container) return;
+  container.innerHTML = Object.entries(THEME_PRESETS).map(([key, preset]) => {
+    const active = state.settings.theme === key;
+    return `<button type="button" class="theme-preset ${active ? 'active' : ''}" data-theme-key="${key}" title="${preset.name} ${preset.zhName}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="theme-meta"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`;
+  }).join('');
+}
+function applyThemePresetVariables() {
+  const preset = getActiveThemePreset();
+  document.documentElement.style.setProperty('--primary', preset.accent);
+  document.documentElement.style.setProperty('--primary-soft', preset.soft);
+  resumePage.style.setProperty('--resume-accent-color', preset.accent);
+  resumePage.style.setProperty('--resume-border-color', preset.border);
+  resumePage.style.setProperty('--resume-accent-soft', preset.soft);
+}
 function applyResumeTypographyClasses() {
   const t = state.settings.typography || {
     density: 'standard',
@@ -148,17 +178,20 @@ function applyResumeTypographyClasses() {
   );
 }
 function applySettings() {
-  document.documentElement.style.setProperty('--primary', state.settings.themeColor);
+  const preset = getActiveThemePreset();
+  document.documentElement.style.setProperty('--primary', preset.accent);
+  document.documentElement.style.setProperty('--primary-soft', preset.soft);
   document.documentElement.style.setProperty('--font-scale', state.settings.fontScale);
   templateSelect.value = state.settings.template;
   templateHint.textContent = TEMPLATE_META[state.settings.template].hint;
   languageModeSelect.value = state.settings.languageMode;
-  themeColorInput.value = state.settings.themeColor;
+  themeColorInput.value = preset.accent;
   fontScaleInput.value = state.settings.fontScale;
   fontScaleValue.textContent = Math.round(state.settings.fontScale * 100) + '%';
   currentTemplateName.textContent = TEMPLATE_META[state.settings.template].name;
   currentLanguageName.textContent = LANGUAGE_META[state.settings.languageMode];
   resumePage.className = 'resume-page ' + TEMPLATE_META[state.settings.template].className;
+  applyThemePresetVariables();
   document.getElementById('pdf-filename-input').value = state.settings.pdfFileName;
   const t = state.settings.typography || { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' };
   document.getElementById('typography-density').value = t.density;
@@ -222,6 +255,9 @@ function buildMobileModuleOrderHtml() {
     <div id="mobile-module-status-list" class="module-order-list">${defs.map((def, index) => `<div class="order-item"><div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;"><span class="status-dot ${moduleHasContent(def) ? 'filled' : ''}" data-module-status-key="${def.key}" aria-label="${moduleHasContent(def) ? '已填写内容' : '未填写内容'}"></span><span class="order-label">${index + 1}. ${moduleTitle(def)}</span></div><div class="order-actions"><button class="icon-btn" data-action="move-module-up" data-module="${def.key}" ${index === 0 ? 'disabled' : ''}>↑</button><button class="icon-btn" data-action="move-module-down" data-module="${def.key}" ${index === defs.length - 1 ? 'disabled' : ''}>↓</button></div></div>`).join('')}</div>
   </div>`;
 }
+function buildThemePresetHtml() {
+  return `<div class="theme-presets mobile-theme-presets">${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="theme-preset mobile-theme-option ${state.settings.theme === key ? 'active' : ''}" data-mobile-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="theme-meta"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}</div>`;
+}
 function buildMoreMenuHtml() { const t = state.settings.typography || { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; return `<div class="section-actions" style="display:grid;gap:10px;">
   <div class="panel-title" style="margin:0;">简历排版设置</div>
   <label class="control-label">排版密度</label>
@@ -250,6 +286,7 @@ function buildMoreMenuHtml() { const t = state.settings.typography || { density:
     <option value="purple" ${t.accent === 'purple' ? 'selected' : ''}>紫色</option>
   </select>
   <button class="btn mobile-typography-reset">重置排版</button>
+  <button class="btn mobile-open-theme-presets">主题风格</button>
   <button class="btn mobile-open-module-order">简历内容排序</button>
   <button class="btn mobile-open-preview">查看预览</button>
   <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
@@ -271,7 +308,7 @@ function handleAction(action, target) { const moduleKey = target.dataset.module,
   }
 }
 
-document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') exportPDF(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') exportPDF(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-open-module-order')) { openMobileDrawer('简历内容排序', buildMobileModuleOrderHtml()); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-import-json')) { closeMobileDrawer(); document.getElementById('import-json-input').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } if (e.target.classList.contains('mobile-typography-reset')) { state.settings.typography = { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; closeMobileDrawer(); applySettings(); renderPreview(); saveState(); } if (e.target.classList.contains('mobile-open-preview')) { closeMobileDrawer(); openMobilePreview(); } });
+document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') exportPDF(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') exportPDF(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } const mobileTheme = e.target.closest('.mobile-theme-option'); if (mobileTheme) { state.settings.theme = mobileTheme.dataset.mobileTheme; state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent; applySettings(); renderThemePresets(); renderPreview(); saveState(); openMobileDrawer('主题风格', buildThemePresetHtml()); return; } if (e.target.classList.contains('mobile-open-theme-presets')) { openMobileDrawer('主题风格', buildThemePresetHtml()); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-open-module-order')) { openMobileDrawer('简历内容排序', buildMobileModuleOrderHtml()); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-import-json')) { closeMobileDrawer(); document.getElementById('import-json-input').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } if (e.target.classList.contains('mobile-typography-reset')) { state.settings.typography = { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; closeMobileDrawer(); applySettings(); renderPreview(); saveState(); } if (e.target.classList.contains('mobile-open-preview')) { closeMobileDrawer(); openMobilePreview(); } });
 window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); return; } if (t.classList.contains('mobile-typography-control')) { const key = t.dataset.typographyKey; state.settings.typography[key] = t.value; renderPreview(); saveState(); return; } });
 window.addEventListener('input', (e) => {
   const t = e.target, action = t.dataset.action;
@@ -282,7 +319,25 @@ window.addEventListener('input', (e) => {
 
 templateSelect.addEventListener('change', () => { state.settings.template = templateSelect.value; render(); });
 languageModeSelect.addEventListener('change', () => { state.settings.languageMode = languageModeSelect.value; render(); });
-themeColorInput.addEventListener('input', () => { state.settings.themeColor = themeColorInput.value; render(); });
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#theme-presets [data-theme-key]');
+  if (!btn) return;
+  state.settings.theme = btn.dataset.themeKey;
+  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
+  applySettings();
+  renderThemePresets();
+  renderPreview();
+  saveState();
+});
+themeColorInput.addEventListener('input', () => {
+  state.settings.themeColor = themeColorInput.value;
+  const matched = Object.entries(THEME_PRESETS).find(([, preset]) => preset.accent.toLowerCase() === themeColorInput.value.toLowerCase());
+  if (matched) state.settings.theme = matched[0];
+  applySettings();
+  renderThemePresets();
+  renderPreview();
+  saveState();
+});
 fontScaleInput.addEventListener('input', () => { state.settings.fontScale = Number(fontScaleInput.value); render(); });
 function sanitizeFileName(name) {
   return text(name).replace(/[\/\\:*?"<>|]/g, '_').replace(/\s+/g, '_');

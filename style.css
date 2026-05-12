@@ -186,6 +186,49 @@ input[type="range"] { width: 100%; }
   margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-soft); line-height: 1.5;
 }
 
+.theme-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.theme-preset {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: .18s ease;
+}
+.theme-preset:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+.theme-preset.active {
+  border-color: color-mix(in srgb, var(--primary) 36%, #cbd5e1);
+  box-shadow: inset 3px 0 0 0 var(--primary);
+  background: color-mix(in srgb, var(--primary-soft) 65%, white);
+}
+.theme-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--dot);
+  box-shadow: 0 0 0 4px var(--dot-soft);
+  border: 1px solid var(--dot-border);
+  flex: 0 0 auto;
+}
+.theme-meta {
+  display: grid;
+  line-height: 1.2;
+}
+.theme-meta strong { font-size: 13px; }
+.theme-meta span { font-size: 12px; color: var(--muted); }
+
 .advanced-settings {
   margin-top: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel-soft); padding: 10px 12px 12px;
 }
@@ -293,8 +336,6 @@ input[type="range"] { width: 100%; }
 
 .template-en-minimal {
   padding: 36px 42px;
-  --resume-accent-color: #111827;
-  --resume-border-color: #d1d5db;
   --resume-headline-color: #4b5563;
   --resume-subtitle-color: #1f2937;
   --resume-muted-color: #6b7280;
@@ -338,7 +379,6 @@ input[type="range"] { width: 100%; }
 .template-campus .main-col .resume-section { margin-top: 15px; }
 
 .template-product {
-  --resume-accent-color: color-mix(in srgb, var(--primary) 82%, #111827);
   --resume-border-color: color-mix(in srgb, var(--resume-accent-color) 30%, #d1d5db);
   --resume-section-gap: 15px;
 }
@@ -373,8 +413,6 @@ input[type="range"] { width: 100%; }
 .template-compact-cn .chip { padding: 3px 8px; font-size: 0.88em; }
 
 .template-ats-en {
-  --resume-accent-color: #111827;
-  --resume-border-color: #d1d5db;
   --resume-headline-color: #4b5563;
   --resume-subtitle-color: #1f2937;
   --resume-muted-color: #6b7280;
@@ -425,7 +463,6 @@ input[type="range"] { width: 100%; }
 .template-engineering-project .plain-list { gap: 7px; }
 
 .template-academic {
-  --resume-accent-color: #0f172a;
   --resume-border-color: #cbd5e1;
   --resume-section-gap: 18px;
   --resume-line-height: 1.6;
@@ -490,6 +527,9 @@ input[type="range"] { width: 100%; }
   .desktop-only-tip { display: none; }
   .mobile-only-tip { display: block; }
   .controls-panel .advanced-settings { display: none; }
+  .theme-presets {
+    grid-template-columns: 1fr;
+  }
   .preview-status-bar {
     width: 100%;
     justify-content: center;
