@@ -177,6 +177,12 @@ function applyResumeTypographyClasses() {
     `accent-${t.accent}`
   );
 }
+function updateEditorMobileSummary() {
+  const summaryEl = document.getElementById('editor-mobile-summary');
+  if (summaryEl) {
+    summaryEl.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].zhName}`;
+  }
+}
 function applySettings() {
   const preset = getActiveThemePreset();
   document.documentElement.style.setProperty('--primary', preset.accent);
@@ -198,6 +204,7 @@ function applySettings() {
   document.getElementById('typography-font-size').value = t.fontSize;
   document.getElementById('typography-margin').value = t.margin;
   document.getElementById('typography-accent').value = t.accent;
+  updateEditorMobileSummary(); // 更新手机顶部摘要
 }
 function currentActiveModuleKey() {
   const active = document.activeElement && document.activeElement.closest && document.activeElement.closest('[id^="module-"]');
@@ -246,7 +253,29 @@ function openMobileDrawer(title, html) { const drawer = document.getElementById(
 function closeMobileDrawer() { document.getElementById('mobile-drawer').classList.add('hidden'); document.getElementById('mobile-drawer-content').innerHTML = ''; }
 function openMobilePreview() { const modal = document.getElementById('mobile-preview-modal'); const cloneWrap = document.getElementById('mobile-preview-clone'); cloneWrap.innerHTML = ''; const cloned = resumePage.cloneNode(true); cloneWrap.appendChild(cloned); modal.classList.remove('hidden'); }
 function closeMobilePreview() { document.getElementById('mobile-preview-modal').classList.add('hidden'); document.getElementById('mobile-preview-clone').innerHTML = ''; }
-function buildTemplateListHtml() { return TEMPLATE_META ? Object.entries(TEMPLATE_META).map(([key, meta]) => `<button class="btn mobile-template-option" data-template="${key}" style="width:100%;margin-bottom:10px;">${meta.name}</button>`).join('') : ''; }
+function buildTemplateListHtml() {
+  const currentTemplateName = TEMPLATE_META[state.settings.template].name;
+  const currentThemeName = `${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+  return `
+    <div class="template-theme-drawer-head">
+      <strong>${currentTemplateName} · ${currentThemeName}</strong>
+      <span class="muted small">模板决定结构，主题决定颜色风格</span>
+    </div>
+    <div class="template-theme-selector">
+      <div class="selector-col">
+        <h4>模板</h4>
+        <div class="template-list">${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button class="btn mobile-template-option ${state.settings.template === key ? 'active' : ''}" data-template="${key}">${meta.name}</button>`).join('')}</div>
+      </div>
+      <div class="selector-col">
+        <h4>主题风格</h4>
+        <div class="theme-list">${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button class="theme-preset mobile-theme-option ${state.settings.theme === key ? 'active' : ''}" data-mobile-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="theme-meta"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}</div>
+      </div>
+    </div>
+    <div class="template-theme-drawer-actions">
+      <button class="btn mobile-open-preview">查看预览</button>
+      <button class="btn btn-primary mobile-template-done">完成</button>
+    </div>`;
+}
 function buildMobileModuleOrderHtml() {
   const defs = moduleDefs();
   return `<div class="section-actions" style="display:grid;gap:10px;">
@@ -258,47 +287,51 @@ function buildMobileModuleOrderHtml() {
 function buildThemePresetHtml() {
   return `<div class="theme-presets mobile-theme-presets">${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="theme-preset mobile-theme-option ${state.settings.theme === key ? 'active' : ''}" data-mobile-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="theme-meta"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}</div>`;
 }
-function buildMoreMenuHtml() { const t = state.settings.typography || { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; return `<div class="section-actions" style="display:grid;gap:10px;">
-  <div class="panel-title" style="margin:0;">简历排版设置</div>
-  <label class="control-label">排版密度</label>
-  <select class="input mobile-typography-control" data-typography-key="density">
-    <option value="compact" ${t.density === 'compact' ? 'selected' : ''}>紧凑</option>
-    <option value="standard" ${t.density === 'standard' ? 'selected' : ''}>标准</option>
-    <option value="spacious" ${t.density === 'spacious' ? 'selected' : ''}>舒展</option>
-  </select>
-  <label class="control-label">字体大小</label>
-  <select class="input mobile-typography-control" data-typography-key="fontSize">
-    <option value="small" ${t.fontSize === 'small' ? 'selected' : ''}>小</option>
-    <option value="standard" ${t.fontSize === 'standard' ? 'selected' : ''}>标准</option>
-    <option value="large" ${t.fontSize === 'large' ? 'selected' : ''}>大</option>
-  </select>
-  <label class="control-label">页边距</label>
-  <select class="input mobile-typography-control" data-typography-key="margin">
-    <option value="narrow" ${t.margin === 'narrow' ? 'selected' : ''}>窄</option>
-    <option value="standard" ${t.margin === 'standard' ? 'selected' : ''}>标准</option>
-    <option value="wide" ${t.margin === 'wide' ? 'selected' : ''}>宽</option>
-  </select>
-  <label class="control-label">强调色</label>
-  <select class="input mobile-typography-control" data-typography-key="accent">
-    <option value="theme" ${t.accent === 'theme' ? 'selected' : ''}>跟随主题</option>
-    <option value="black" ${t.accent === 'black' ? 'selected' : ''}>黑色</option>
-    <option value="blue" ${t.accent === 'blue' ? 'selected' : ''}>蓝色</option>
-    <option value="purple" ${t.accent === 'purple' ? 'selected' : ''}>紫色</option>
-  </select>
-  <button class="btn mobile-typography-reset">重置排版</button>
-  <button class="btn mobile-open-theme-presets">主题风格</button>
-  <button class="btn mobile-open-module-order">简历内容排序</button>
-  <button class="btn mobile-open-preview">查看预览</button>
-  <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
-  <div class="panel-title" style="margin:0;">数据备份</div>
-  <button class="btn mobile-export-json">导出 JSON</button>
-  <button class="btn mobile-import-json">导入 JSON</button>
-  <button class="btn btn-danger mobile-reset">清空数据</button>
-  <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
-  <div class="panel-title" style="margin:0;">JSON Resume</div>
-  <button class="btn mobile-export-jsonresume">导出 JSON Resume</button>
-  <button class="btn mobile-open-advanced">打开高级设置</button>
-</div>`; }
+function buildMoreMenuHtml() {
+  const t = state.settings.typography || { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' };
+  const currentTemplateName = TEMPLATE_META[state.settings.template].name;
+  const currentThemeName = THEME_PRESETS[state.settings.theme].zhName;
+  return `
+    <div class="section-actions" style="display:grid;gap:10px;">
+      <div class="panel-title" style="margin:0;">简历排版设置</div>
+      <label class="control-label">排版密度</label>
+      <select class="input mobile-typography-control" data-typography-key="density">
+        <option value="compact" ${t.density === 'compact' ? 'selected' : ''}>紧凑</option>
+        <option value="standard" ${t.density === 'standard' ? 'selected' : ''}>标准</option>
+        <option value="spacious" ${t.density === 'spacious' ? 'selected' : ''}>舒展</option>
+      </select>
+      <label class="control-label">字体大小</label>
+      <select class="input mobile-typography-control" data-typography-key="fontSize">
+        <option value="small" ${t.fontSize === 'small' ? 'selected' : ''}>小</option>
+        <option value="standard" ${t.fontSize === 'standard' ? 'selected' : ''}>标准</option>
+        <option value="large" ${t.fontSize === 'large' ? 'selected' : ''}>大</option>
+      </select>
+      <label class="control-label">页边距</label>
+      <select class="input mobile-typography-control" data-typography-key="margin">
+        <option value="narrow" ${t.margin === 'narrow' ? 'selected' : ''}>窄</option>
+        <option value="standard" ${t.margin === 'standard' ? 'selected' : ''}>标准</option>
+        <option value="wide" ${t.margin === 'wide' ? 'selected' : ''}>宽</option>
+      </select>
+      <label class="control-label">强调色</label>
+      <select class="input mobile-typography-control" data-typography-key="accent">
+        <option value="theme" ${t.accent === 'theme' ? 'selected' : ''}>跟随主题</option>
+        <option value="black" ${t.accent === 'black' ? 'selected' : ''}>黑色</option>
+        <option value="blue" ${t.accent === 'blue' ? 'selected' : ''}>蓝色</option>
+        <option value="purple" ${t.accent === 'purple' ? 'selected' : ''}>紫色</option>
+      </select>
+      <button class="btn mobile-typography-reset">重置排版</button>
+      <button class="btn mobile-open-module-order">简历内容排序</button>
+      <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
+      <div class="panel-title" style="margin:0;">数据备份</div>
+      <button class="btn mobile-export-json">导出 JSON</button>
+      <button class="btn mobile-import-json">导入 JSON</button>
+      <button class="btn btn-danger mobile-reset">清空数据</button>
+      <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
+      <div class="panel-title" style="margin:0;">JSON Resume</div>
+      <button class="btn mobile-export-jsonresume">导出 JSON Resume</button>
+      <button class="btn mobile-open-advanced">打开高级设置</button>
+    </div>`;
+}
 
 function handleAction(action, target) { const moduleKey = target.dataset.module, itemId = target.dataset.item, bulletIndex = Number(target.dataset.bullet); if (action === 'collapse-module') state.modules[moduleKey].collapsed = !state.modules[moduleKey].collapsed; if (action === 'add-item') state.modules[moduleKey].items.push(createItemByModule(moduleKey)); if (action === 'delete-item' && confirm('确认删除这条经历/条目？删除后不可恢复。')) state.modules[moduleKey].items = state.modules[moduleKey].items.filter(i => i.id !== itemId); if (action === 'add-bullet') getItem(moduleKey, itemId).bullets.push(createBullet('', true)); if (action === 'delete-bullet' && confirm('确认删除这个 bullet？')) getItem(moduleKey, itemId).bullets.splice(bulletIndex, 1); if (action === 'move-module-up') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i - 1); state.settings.moduleOrder = order; } if (action === 'move-module-down') { const order = normalizeOrder(state.settings.moduleOrder); const i = order.indexOf(moduleKey); moveInArray(order, i, i + 1); state.settings.moduleOrder = order; } if (action === 'move-item-up') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i - 1); } if (action === 'move-item-down') { const arr = state.modules[moduleKey].items; const i = arr.findIndex(x => x.id === itemId); moveInArray(arr, i, i + 1); } if (action === 'move-bullet-up') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex - 1); if (action === 'move-bullet-down') moveInArray(getItem(moduleKey, itemId).bullets, bulletIndex, bulletIndex + 1); if (action === 'clear-avatar') { const avatar = state.modules.personalInfo.fields.avatar; avatar.value = ''; avatar.visible = false; }
   render();
@@ -308,7 +341,64 @@ function handleAction(action, target) { const moduleKey = target.dataset.module,
   }
 }
 
-document.addEventListener('click', (e) => { const target = e.target.closest('[data-action]'); if (target) { const action = target.dataset.action; if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; handleAction(action, target); return; } if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (e.target.id === 'mobile-template-btn') openMobileDrawer('选择模板', buildTemplateListHtml()); if (e.target.id === 'mobile-preview-btn') openMobilePreview(); if (e.target.id === 'mobile-export-btn') exportPDF(); if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml()); if (e.target.id === 'mobile-drawer-close') closeMobileDrawer(); if (e.target.id === 'mobile-preview-close') closeMobilePreview(); if (e.target.id === 'mobile-preview-export') exportPDF(); const option = e.target.closest('.mobile-template-option'); if (option) { state.settings.template = option.dataset.template; closeMobileDrawer(); render(); } const mobileTheme = e.target.closest('.mobile-theme-option'); if (mobileTheme) { state.settings.theme = mobileTheme.dataset.mobileTheme; state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent; applySettings(); renderThemePresets(); renderPreview(); saveState(); openMobileDrawer('主题风格', buildThemePresetHtml()); return; } if (e.target.classList.contains('mobile-open-theme-presets')) { openMobileDrawer('主题风格', buildThemePresetHtml()); } if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } if (e.target.classList.contains('mobile-open-module-order')) { openMobileDrawer('简历内容排序', buildMobileModuleOrderHtml()); } if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); } if (e.target.classList.contains('mobile-import-json')) { closeMobileDrawer(); document.getElementById('import-json-input').click(); } if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); } if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); } if (e.target.classList.contains('mobile-typography-reset')) { state.settings.typography = { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; closeMobileDrawer(); applySettings(); renderPreview(); saveState(); } if (e.target.classList.contains('mobile-open-preview')) { closeMobileDrawer(); openMobilePreview(); } });
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-action]');
+  if (target) {
+    const action = target.dataset.action;
+    if (['toggle-module', 'toggle-field', 'toggle-item', 'toggle-bullet', 'update-field', 'update-bullet'].includes(action)) return; // 这些操作在 input/change event listener 里处理
+    if (!['collapse-module', 'add-item', 'delete-item', 'add-bullet', 'delete-bullet', 'move-module-up', 'move-module-down', 'move-item-up', 'move-item-down', 'move-bullet-up', 'move-bullet-down', 'clear-avatar'].includes(action)) return; // 只处理这些 action
+    handleAction(action, target);
+    return;
+  }
+
+  // 其他点击事件
+  if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (e.target.id === 'mobile-template-btn') openMobileDrawer('模板与主题', buildTemplateListHtml());
+  if (e.target.id === 'mobile-preview-btn') openMobilePreview();
+  if (e.target.id === 'mobile-export-btn') exportPDF();
+  if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml());
+  if (e.target.id === 'mobile-drawer-close') closeMobileDrawer();
+  if (e.target.id === 'mobile-preview-close') closeMobilePreview();
+  if (e.target.id === 'mobile-preview-export') exportPDF();
+  if (e.target.id === 'editor-mobile-change-template') openMobileDrawer('模板与主题', buildTemplateListHtml());
+
+  const option = e.target.closest('.mobile-template-option');
+  if (option) {
+    state.settings.template = option.dataset.template;
+    applySettings(); // 应用设置 (会更新主题色)
+    renderNav(); // 重新渲染导航
+    renderOrderControls(); // 重新渲染排序
+    renderEditor(); // 重新渲染编辑器
+    renderPreview(); // 重新渲染预览
+    saveState();
+    updateEditorMobileSummary(); // 更新手机顶部摘要
+    openMobileDrawer('模板与主题', buildTemplateListHtml()); // 重新渲染抽屉，更新选中状态
+    return;
+  }
+
+  const mobileTheme = e.target.closest('.mobile-theme-option');
+  if (mobileTheme) {
+    state.settings.theme = mobileTheme.dataset.mobileTheme;
+    // state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent; // 已经通过 applySettings 统一管理
+    applySettings();
+    renderThemePresets();
+    renderPreview();
+    saveState();
+    updateEditorMobileSummary(); // 更新手机顶部摘要
+    openMobileDrawer('模板与主题', buildTemplateListHtml()); // 重新渲染抽屉，更新选中状态
+    return;
+  }
+
+  if (e.target.classList.contains('mobile-template-done')) { closeMobileDrawer(); return; }
+  if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  if (e.target.classList.contains('mobile-open-module-order')) { openMobileDrawer('简历内容排序', buildMobileModuleOrderHtml()); }
+  if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); }
+  if (e.target.classList.contains('mobile-import-json')) { closeMobileDrawer(); document.getElementById('import-json-input').click(); }
+  if (e.target.classList.contains('mobile-export-jsonresume')) { closeMobileDrawer(); document.getElementById('export-jsonresume-btn').click(); }
+  if (e.target.classList.contains('mobile-reset')) { closeMobileDrawer(); document.getElementById('reset-btn').click(); }
+  if (e.target.classList.contains('mobile-typography-reset')) { state.settings.typography = { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; closeMobileDrawer(); applySettings(); renderPreview(); saveState(); }
+  if (e.target.classList.contains('mobile-open-preview')) { closeMobileDrawer(); openMobilePreview(); }
+});
 window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); return; } if (t.classList.contains('mobile-typography-control')) { const key = t.dataset.typographyKey; state.settings.typography[key] = t.value; renderPreview(); saveState(); return; } });
 window.addEventListener('input', (e) => {
   const t = e.target, action = t.dataset.action;

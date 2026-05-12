@@ -29,37 +29,38 @@
         <div id="module-nav" class="module-nav"></div>
       </div>
 
-      <div class="panel controls-panel">
-        <div class="panel-title">简历设置</div>
+          <div class="layout-settings-block">
+            <div class="panel-title" style="margin-top:8px;">简历外观</div>
+            <label class="control-label">模板</label>
+            <select id="template-select" class="input">
+              <option value="cn-classic">经典单栏中文模板</option>
+              <option value="compact-cn">一页紧凑中文模板</option>
+              <option value="en-minimal">英文极简模板</option>
+              <option value="ats-en">英文 ATS 模板</option>
+              <option value="engineering">工程技术模板</option>
+              <option value="engineering-project">工程项目强化模板</option>
+              <option value="campus">校招双栏模板</option>
+              <option value="product">产品经理模板</option>
+              <option value="academic">学术 CV 模板</option>
+            </select>
+            <div id="template-hint" class="template-hint muted small">适合中文校招 / 通用求职，结构稳重清晰。</div>
 
-        <label class="control-label">模板</label>
-        <select id="template-select" class="input">
-          <option value="cn-classic">经典单栏中文模板</option>
-          <option value="compact-cn">一页紧凑中文模板</option>
-          <option value="en-minimal">英文极简模板</option>
-          <option value="ats-en">英文 ATS 模板</option>
-          <option value="engineering">工程技术模板</option>
-          <option value="engineering-project">工程项目强化模板</option>
-          <option value="campus">校招双栏模板</option>
-          <option value="product">产品经理模板</option>
-          <option value="academic">学术 CV 模板</option>
-        </select>
-        <div id="template-hint" class="template-hint muted small">适合中文校招 / 通用求职，结构稳重清晰。</div>
+            <label class="control-label">主题风格</label>
+            <div id="theme-presets" class="theme-presets"></div>
+          </div>
 
-        <label class="control-label">主题风格</label>
-        <div id="theme-presets" class="theme-presets"></div>
+          <div class="layout-settings-block">
+            <div class="panel-title" style="margin-top:8px;">导出</div>
+            <label class="control-label">PDF 文件名</label>
+            <input id="pdf-filename-input" class="input" placeholder="不填写则自动生成文件名">
+            <div class="button-grid">
+              <button id="export-pdf-btn" class="btn btn-primary">一键导出 PDF</button>
+              <button id="print-btn" class="btn">浏览器打印导出</button>
+            </div>
+          </div>
 
-        <label class="control-label">PDF 文件名</label>
-        <input id="pdf-filename-input" class="input" placeholder="不填写则自动生成文件名">
-
-        <div class="button-grid primary-actions">
-          <button id="export-pdf-btn" class="btn btn-primary">一键导出 PDF</button>
-          <button id="print-btn" class="btn">浏览器打印导出</button>
-          <button id="scroll-preview-btn" class="btn mid-only">查看预览</button>
-        </div>
-
-        <details class="advanced-settings">
-          <summary>高级设置</summary>
+          <details class="advanced-settings">
+            <summary>高级设置</summary>
 
           <label class="control-label">语言模式</label>
           <select id="language-mode" class="input">
@@ -68,7 +69,7 @@
             <option value="bilingual">中英双语标题</option>
           </select>
 
-          <label class="control-label">主题色</label>
+          <label class="control-label">强调色</label>
           <input id="theme-color" type="color" value="#2563eb" class="color-input" />
 
           <label class="control-label">字体大小</label>
@@ -144,6 +145,8 @@
 
     <main class="editor no-print">
       <div class="editor-header">
+        <strong id="editor-mobile-summary" class="mobile-only-tip template-summary">当前：经典单栏中文模板 · Navy 深蓝</strong>
+        <button class="btn btn-sm mobile-only-tip" id="editor-mobile-change-template">更改</button>
         <div>
           <h2>填写内容</h2>
           <p class="desktop-only-tip">勾选表示显示在简历中；关闭后只隐藏，不会删除已填写内容。</p>
