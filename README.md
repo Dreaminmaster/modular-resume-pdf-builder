@@ -42,6 +42,7 @@ Choose a layout, preview the result in real time, and export a clean PDF.
 - **Information pool** — keep all resume content in one place
 - **Show or hide content** — tailor one version without losing other content
 - **Multiple templates** — switch layouts without rewriting the resume
+- **Preset themes** — apply professional color schemes
 - **Live preview** — see the A4 result while editing
 - **PDF export** — export only the resume page
 - **Mobile support** — edit, preview, and export on phone
@@ -67,17 +68,20 @@ Prepare a cleaner English-first version without rebuilding everything from scrat
 
 ## Screenshots
 
-### Desktop editor
+### Editor
 ![Desktop Editor](docs/desktop-editor.png)
 
 ### Mobile editor
 ![Mobile Editor](docs/mobile-editor.png)
 
+### Theme presets in action
+![Theme Presets](docs/theme-compact-cn-navy.png)
+
+### Theme & Layout settings
+![Theme Settings](docs/theme-settings.png)
+
 ### PDF preview
 ![PDF Preview](docs/pdf-preview.png)
-
-### Template and export settings
-![Template Export](docs/template-export.png)
 
 ---
 
@@ -96,10 +100,12 @@ Prepare a cleaner English-first version without rebuilding everything from scrat
 - v1.1.0 is prepared but not tagged yet
 
 ### Recent updates
+- added 3 new resume templates (compact Chinese, English ATS, engineering project focus)
+- added 6 professional theme presets (Graphite, Navy, Slate, Indigo, Forest, Burgundy)
+- polished existing 6 resume templates (classic Chinese, minimal English, engineering, campus, product, academic)
 - improved mobile editing / preview / export flow
 - polished sidebar and A4 preview experience
 - added customizable PDF filename
-- added four official demo datasets
 - updated README toward a product-style homepage
 
 ---
