@@ -258,7 +258,7 @@ function buildTemplateListHtml() {
   const currentThemeName = `${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
   return `
     <div class="template-theme-drawer-head">
-      <strong>${currentTemplateName} · ${currentThemeName}</strong>
+      <strong>当前：${currentTemplateName} · ${currentThemeName}</strong>
       <span class="muted small">模板决定结构，主题决定颜色风格</span>
     </div>
     <div class="template-theme-selector">
