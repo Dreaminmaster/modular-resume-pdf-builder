@@ -482,6 +482,99 @@ input[type="range"] { width: 100%; }
   overflow: auto;
   padding-bottom: 8px;
 }
+.template-theme-wheel {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  height: 250px;
+  overflow: hidden;
+}
+.wheel-column {
+  position: relative;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-top: var(--wheel-pad, 96px);
+  padding-bottom: var(--wheel-pad, 96px);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 24%, black 76%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 24%, black 76%, transparent 100%);
+}
+.wheel-column::-webkit-scrollbar {
+  display: none;
+}
+.wheel-spacer {
+  height: 0;
+  pointer-events: none;
+}
+.wheel-item {
+  height: 48px;
+  min-height: 48px;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+  transition: opacity .16s ease, transform .16s ease, color .16s ease, font-weight .16s ease;
+}
+.wheel-item .wheel-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.1;
+}
+.wheel-item .wheel-label strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.wheel-item .wheel-label span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.wheel-item:not(.active) {
+  opacity: .58;
+  transform: scale(.97);
+}
+.wheel-item.adjacent {
+  opacity: .78;
+  transform: scale(.985);
+}
+.wheel-item.active {
+  opacity: 1;
+  transform: scale(1);
+  color: var(--text);
+  font-weight: 700;
+}
+.wheel-theme-item .theme-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--dot);
+  box-shadow: 0 0 0 3px var(--dot-soft);
+  border: 1px solid var(--dot-border);
+  flex: 0 0 auto;
+}
+.wheel-selection-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 48px;
+  transform: translateY(-50%);
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255,255,255,0.62);
+  pointer-events: none;
+}
 .template-theme-drawer-head {
   display: grid;
   gap: 4px;
@@ -629,54 +722,18 @@ input[type="range"] { width: 100%; }
   }
 
   .template-theme-selector {
-    position: relative;
-    display: grid;
+    display: block;
+  }
+  .template-theme-wheel {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 14px;
-    align-items: start;
+    height: 240px;
   }
-  .template-theme-selector .selector-col {
+  .wheel-column {
     min-width: 0;
   }
-  .template-theme-selector .template-list,
-  .template-theme-selector .theme-list {
-    position: relative;
-    max-height: 240px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 96px 4px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    scroll-snap-type: y mandatory;
-    mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
-  }
-  .template-theme-selector .template-list::-webkit-scrollbar,
-  .template-theme-selector .theme-list::-webkit-scrollbar {
-    display: none;
-  }
-  .template-theme-selector .template-list button,
-  .template-theme-selector .theme-list .theme-preset {
-    min-height: 48px;
-    scroll-snap-align: center;
-  }
-  .template-theme-selector .template-list button:not(.active),
-  .template-theme-selector .theme-list .theme-preset:not(.active) {
-    opacity: .45;
-    transform: scale(.96);
-  }
-  .template-theme-selector::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 48px;
-    transform: translateY(-50%);
-    border-top: 1px solid rgba(148, 163, 184, 0.18);
-    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-    background: rgba(255,255,255,0.7);
-    pointer-events: none;
+  .wheel-item {
+    font-size: 14px;
   }
 
   .preview-status-bar {

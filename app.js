@@ -213,7 +213,27 @@ function currentActiveModuleKey() {
   return firstVisible ? firstVisible.key : 'personalInfo';
 }
 
-function renderNav() { moduleNav.innerHTML = ''; const activeKey = currentActiveModuleKey(); moduleDefs().forEach(def => { const mod = state.modules[def.key]; const row = document.createElement('div'); row.className = 'module-nav-item' + (def.key === activeKey ? ' active' : ''); row.innerHTML = `<label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><a href="#module-${def.key}">${moduleTitle(def)}</a></label><span class="status-dot ${moduleHasContent(def) ? 'filled' : ''}" data-module-status-key="${def.key}" aria-label="${moduleHasContent(def) ? '已填写内容' : '未填写内容'}"></span>`; moduleNav.appendChild(row); }); }
+function renderNav() {
+  moduleNav.innerHTML = '';
+  const mobileModuleNav = document.getElementById('mobile-module-nav');
+  if (mobileModuleNav) mobileModuleNav.innerHTML = '';
+  const activeKey = currentActiveModuleKey();
+  moduleDefs().forEach(def => {
+    const mod = state.modules[def.key];
+    const filled = moduleHasContent(def);
+    const row = document.createElement('div');
+    row.className = 'module-nav-item' + (def.key === activeKey ? ' active' : '');
+    row.innerHTML = `<label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><a href="#module-${def.key}">${moduleTitle(def)}</a></label><span class="status-dot ${filled ? 'filled' : ''}" data-module-status-key="${def.key}" aria-label="${filled ? '已填写内容' : '未填写内容'}"></span>`;
+    moduleNav.appendChild(row);
+
+    if (mobileModuleNav) {
+      const pill = document.createElement('label');
+      pill.className = 'mobile-module-pill' + (filled ? ' filled' : '') + (def.key === activeKey ? ' active' : '');
+      pill.innerHTML = `<input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><span>${moduleTitle(def)}</span>`;
+      mobileModuleNav.appendChild(pill);
+    }
+  });
+}
 
 function renderOrderControls() { moduleOrderList.innerHTML = ''; const defs = moduleDefs(); defs.forEach((def, index) => { const item = document.createElement('div'); item.className = 'order-item'; item.innerHTML = `<span class="order-label">${index + 1}. ${moduleTitle(def)}</span><div class="order-actions"><button class="icon-btn" data-action="move-module-up" data-module="${def.key}" ${index === 0 ? 'disabled' : ''}>↑</button><button class="icon-btn" data-action="move-module-down" data-module="${def.key}" ${index === defs.length - 1 ? 'disabled' : ''}>↓</button></div>`; moduleOrderList.appendChild(item); }); }
 function renderEditor() { editorContent.innerHTML = ''; moduleDefs().forEach(def => { const mod = state.modules[def.key]; if (!mod.visible) return; const card = document.createElement('section'); card.className = 'module-card'; card.id = 'module-' + def.key; const bodyClass = mod.collapsed ? 'module-body collapsed' : 'module-body'; card.innerHTML = `<div class="module-header"><div class="module-title-wrap"><input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><div><h3 class="module-title">${moduleTitle(def)}</h3><div class="helper-text">关闭后仅从本次简历隐藏，已填写内容会保留。</div></div></div><div class="module-actions">${def.type === 'list' ? `<button class="icon-btn" data-action="add-item" data-module="${def.key}">+ 新增${def.itemLabel}</button>` : ''}<button class="icon-btn" data-action="collapse-module" data-module="${def.key}">${mod.collapsed ? '展开' : '折叠'}</button></div></div><div class="${bodyClass}"></div>`; const body = card.querySelector('.module-body'); if (def.key === 'personalInfo') body.appendChild(renderAvatarControls()); if (def.type === 'fields') body.appendChild(renderFieldsBlock(def.key, mod.fields, def.key === 'personalInfo' ? ['avatar'] : [])); else { mod.items.forEach((item, index) => body.appendChild(renderItemCard(def.key, item, index, def.itemLabel))); const actions = document.createElement('div'); actions.className = 'section-actions'; actions.innerHTML = `<button class="btn" data-action="add-item" data-module="${def.key}">+ 添加${def.itemLabel}</button>`; body.appendChild(actions); } editorContent.appendChild(card); }); }
@@ -249,33 +269,140 @@ function renderCampusLayout(order) { const leftKeys = ['education', 'skills', 'l
 function renderPreview() { if (isMeaningfullyEmpty()) { resumePage.innerHTML = renderEmptyState(); applyResumeTypographyClasses(); return requestAnimationFrame(checkPageOverflow); } const template = state.settings.template; const order = getPreviewOrder(template); if (template === 'campus') { resumePage.innerHTML = renderCampusLayout(order); applyResumeTypographyClasses(); return requestAnimationFrame(checkPageOverflow); } const parts = [renderHeader()]; order.forEach(key => { if (key === 'experience') parts.push(renderCombinedExperience()); else if (key === 'summary') parts.push(renderSummary()); else parts.push(renderListModule(key)); }); resumePage.innerHTML = parts.join(''); applyResumeTypographyClasses(); requestAnimationFrame(checkPageOverflow); }
 function checkPageOverflow() { const pxPerMm = 96 / 25.4; const a4Height = 297 * pxPerMm; const ratio = resumePage.scrollHeight / a4Height; const pageStateEl = document.getElementById('current-page-status'); if (ratio <= 1.02) { pageWarning.textContent = '当前内容基本可控制在一页 A4 内。'; if (pageStateEl) pageStateEl.textContent = 'A4 单页'; } else if (ratio <= 1.35) { pageWarning.textContent = '当前内容略超一页，建议精简 1-2 个条目或描述。'; if (pageStateEl) pageStateEl.textContent = '接近两页'; } else { pageWarning.textContent = '当前内容明显超过一页，导出时将自动分页。'; if (pageStateEl) pageStateEl.textContent = '多页'; } pageWarning.classList.remove('hidden'); }
 
-function openMobileDrawer(title, html) { const drawer = document.getElementById('mobile-drawer'); document.getElementById('mobile-drawer-title').textContent = title; document.getElementById('mobile-drawer-content').innerHTML = html; drawer.classList.remove('hidden'); }
+function openMobileDrawer(title, html) {
+  const drawer = document.getElementById('mobile-drawer');
+  document.getElementById('mobile-drawer-title').textContent = title;
+  document.getElementById('mobile-drawer-content').innerHTML = html;
+  drawer.classList.remove('hidden');
+  if (title === '模板与主题') {
+    requestAnimationFrame(() => initWheelPicker());
+  }
+}
 function closeMobileDrawer() { document.getElementById('mobile-drawer').classList.add('hidden'); document.getElementById('mobile-drawer-content').innerHTML = ''; }
 function openMobilePreview() { const modal = document.getElementById('mobile-preview-modal'); const cloneWrap = document.getElementById('mobile-preview-clone'); cloneWrap.innerHTML = ''; const cloned = resumePage.cloneNode(true); cloneWrap.appendChild(cloned); modal.classList.remove('hidden'); }
 function closeMobilePreview() { document.getElementById('mobile-preview-modal').classList.add('hidden'); document.getElementById('mobile-preview-clone').innerHTML = ''; }
 function buildTemplateListHtml() {
   const currentTemplateName = TEMPLATE_META[state.settings.template].name;
   const currentThemeName = `${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+  const itemHeight = 48;
+  const wheelPadding = itemHeight * 2;
   return `
     <div class="template-theme-drawer-head">
       <strong>当前：${currentTemplateName} · ${currentThemeName}</strong>
       <span class="muted small">模板决定结构，主题决定颜色风格</span>
     </div>
-    <div class="template-theme-selector">
-      <div class="selector-col">
-        <h4>模板</h4>
-        <div class="template-list">${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button class="btn mobile-template-option ${state.settings.template === key ? 'active' : ''}" data-template="${key}">${meta.name}</button>`).join('')}</div>
+    <div class="template-theme-wheel" data-wheel-root data-item-height="${itemHeight}">
+      <div class="wheel-column" data-wheel="template" data-current="${state.settings.template}" style="--wheel-pad:${wheelPadding}px;">
+        <div class="wheel-spacer" aria-hidden="true"></div>
+        ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-item ${state.settings.template === key ? 'active' : ''}" data-template="${key}">${meta.name}</button>`).join('')}
+        <div class="wheel-spacer" aria-hidden="true"></div>
       </div>
-      <div class="selector-col">
-        <h4>主题风格</h4>
-        <div class="theme-list">${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button class="theme-preset mobile-theme-option ${state.settings.theme === key ? 'active' : ''}" data-mobile-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="theme-meta"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}</div>
+      <div class="wheel-column" data-wheel="theme" data-current="${state.settings.theme}" style="--wheel-pad:${wheelPadding}px;">
+        <div class="wheel-spacer" aria-hidden="true"></div>
+        ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-item wheel-theme-item ${state.settings.theme === key ? 'active' : ''}" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
+        <div class="wheel-spacer" aria-hidden="true"></div>
       </div>
+      <div class="wheel-selection-indicator" aria-hidden="true"></div>
     </div>
     <div class="template-theme-drawer-actions">
       <button class="btn mobile-open-preview">查看预览</button>
       <button class="btn btn-primary mobile-template-done">完成</button>
     </div>`;
 }
+const wheelState = {
+  templateTimer: null,
+  themeTimer: null,
+  initialized: false
+};
+function updateWheelItemClasses(column, activeItem) {
+  const items = Array.from(column.querySelectorAll('.wheel-item'));
+  items.forEach((item) => {
+    item.classList.remove('active', 'adjacent');
+    if (item === activeItem) {
+      item.classList.add('active');
+      return;
+    }
+    const distance = Math.abs(items.indexOf(item) - items.indexOf(activeItem));
+    if (distance === 1) item.classList.add('adjacent');
+  });
+}
+function getCenteredWheelItem(column) {
+  const items = Array.from(column.querySelectorAll('.wheel-item'));
+  if (!items.length) return null;
+  const columnRect = column.getBoundingClientRect();
+  const centerY = columnRect.top + columnRect.height / 2;
+  let closest = items[0];
+  let minDistance = Infinity;
+  items.forEach((item) => {
+    const rect = item.getBoundingClientRect();
+    const itemCenter = rect.top + rect.height / 2;
+    const distance = Math.abs(itemCenter - centerY);
+    if (distance < minDistance) {
+      minDistance = distance;
+      closest = item;
+    }
+  });
+  return closest;
+}
+function scrollWheelToValue(type, value) {
+  const column = document.querySelector(`.wheel-column[data-wheel="${type}"]`);
+  if (!column) return;
+  const selector = type === 'template' ? `.wheel-item[data-template="${value}"]` : `.wheel-item[data-theme="${value}"]`;
+  const item = column.querySelector(selector);
+  if (!item) return;
+  const target = item.offsetTop - (column.clientHeight / 2) + (item.offsetHeight / 2);
+  column.scrollTo({ top: target, behavior: 'auto' });
+  updateWheelItemClasses(column, item);
+}
+function updateTemplateThemeSummary() {
+  updateEditorMobileSummary();
+  const head = document.querySelector('.template-theme-drawer-head strong');
+  if (head) {
+    head.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+  }
+}
+function updateWheelSelection(type, key) {
+  if (!key) return;
+  if (type === 'template' && state.settings.template !== key) {
+    state.settings.template = key;
+  }
+  if (type === 'theme' && state.settings.theme !== key) {
+    state.settings.theme = key;
+    state.settings.themeColor = THEME_PRESETS[key].accent;
+  }
+  applySettings();
+  renderThemePresets();
+  renderPreview();
+  saveState();
+  updateTemplateThemeSummary();
+}
+function snapWheelToNearestItem(column) {
+  const centered = getCenteredWheelItem(column);
+  if (!centered) return;
+  const target = centered.offsetTop - (column.clientHeight / 2) + (centered.offsetHeight / 2);
+  column.scrollTo({ top: target, behavior: 'smooth' });
+  updateWheelItemClasses(column, centered);
+  const type = column.dataset.wheel;
+  const key = type === 'template' ? centered.dataset.template : centered.dataset.theme;
+  updateWheelSelection(type, key);
+}
+function initWheelPicker() {
+  const root = document.querySelector('[data-wheel-root]');
+  if (!root) return;
+  const columns = root.querySelectorAll('.wheel-column');
+  columns.forEach((column) => {
+    const type = column.dataset.wheel;
+    const current = type === 'template' ? state.settings.template : state.settings.theme;
+    scrollWheelToValue(type, current);
+    column.onscroll = () => {
+      const centered = getCenteredWheelItem(column);
+      if (centered) updateWheelItemClasses(column, centered);
+      clearTimeout(wheelState[`${type}Timer`]);
+      wheelState[`${type}Timer`] = setTimeout(() => snapWheelToNearestItem(column), 100);
+    };
+  });
+}
+
 function buildMobileModuleOrderHtml() {
   const defs = moduleDefs();
   return `<div class="section-actions" style="display:grid;gap:10px;">
@@ -365,27 +492,26 @@ document.addEventListener('click', (e) => {
   const option = e.target.closest('.mobile-template-option');
   if (option) {
     state.settings.template = option.dataset.template;
-    applySettings(); // 应用设置 (会更新主题色)
-    renderNav(); // 重新渲染导航
-    renderOrderControls(); // 重新渲染排序
-    renderEditor(); // 重新渲染编辑器
-    renderPreview(); // 重新渲染预览
+    applySettings();
+    renderNav();
+    renderOrderControls();
+    renderEditor();
+    renderPreview();
     saveState();
-    updateEditorMobileSummary(); // 更新手机顶部摘要
-    openMobileDrawer('模板与主题', buildTemplateListHtml()); // 重新渲染抽屉，更新选中状态
+    updateEditorMobileSummary();
+    openMobileDrawer('模板与主题', buildTemplateListHtml());
     return;
   }
 
   const mobileTheme = e.target.closest('.mobile-theme-option');
   if (mobileTheme) {
     state.settings.theme = mobileTheme.dataset.mobileTheme;
-    // state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent; // 已经通过 applySettings 统一管理
     applySettings();
     renderThemePresets();
     renderPreview();
     saveState();
-    updateEditorMobileSummary(); // 更新手机顶部摘要
-    openMobileDrawer('模板与主题', buildTemplateListHtml()); // 重新渲染抽屉，更新选中状态
+    updateEditorMobileSummary();
+    openMobileDrawer('模板与主题', buildTemplateListHtml());
     return;
   }
 
