@@ -600,6 +600,6 @@ document.getElementById('import-json-input').addEventListener('change', async (e
   e.target.value = '';
 });
 document.getElementById('import-jsonresume-input').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { importJsonResume(JSON.parse(await file.text())); alert('JSON Resume 导入成功。'); } catch { alert('导入失败：JSON Resume 格式不正确。'); } e.target.value = ''; });
-document.getElementById('reset-btn').addEventListener('click', () => { if (confirm('确认清空全部数据？此操作会移除 localStorage 中保存的信息池。')) { state = defaultState(); render(); } });
+document.getElementById('reset-btn').addEventListener('click', () => { if (confirm('确认清空全部数据？此操作会删除当前浏览器中保存的简历草稿。')) { state = defaultState(); render(); } });
 
 render();
