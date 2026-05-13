@@ -275,7 +275,7 @@ function openMobileDrawer(title, html) {
   document.getElementById('mobile-drawer-content').innerHTML = html;
   drawer.classList.remove('hidden');
   if (title === '模板与主题') {
-    requestAnimationFrame(() => initWheelPicker());
+    requestAnimationFrame(() => initTemplateThemeWheel());
   }
 }
 function closeMobileDrawer() { document.getElementById('mobile-drawer').classList.add('hidden'); document.getElementById('mobile-drawer-content').innerHTML = ''; }
@@ -284,46 +284,48 @@ function closeMobilePreview() { document.getElementById('mobile-preview-modal').
 function buildTemplateListHtml() {
   const currentTemplateName = TEMPLATE_META[state.settings.template].name;
   const currentThemeName = `${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
-  const itemHeight = 48;
-  const wheelPadding = itemHeight * 2;
   return `
-    <div class="template-theme-drawer-head">
-      <strong>当前：${currentTemplateName} · ${currentThemeName}</strong>
-      <span class="muted small">模板决定结构，主题决定颜色风格</span>
-    </div>
-    <div class="template-theme-wheel" data-wheel-root data-item-height="${itemHeight}">
-      <div class="wheel-column" data-wheel="template" data-current="${state.settings.template}" style="--wheel-pad:${wheelPadding}px;">
-        <div class="wheel-spacer" aria-hidden="true"></div>
-        ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-item ${state.settings.template === key ? 'active' : ''}" data-template="${key}">${meta.name}</button>`).join('')}
-        <div class="wheel-spacer" aria-hidden="true"></div>
+    <div class="appearance-wheel-sheet">
+      <div class="appearance-wheel-header">
+        <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
+        <div class="appearance-help muted small">模板决定结构，主题决定颜色风格。</div>
       </div>
-      <div class="wheel-column" data-wheel="theme" data-current="${state.settings.theme}" style="--wheel-pad:${wheelPadding}px;">
-        <div class="wheel-spacer" aria-hidden="true"></div>
-        ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-item wheel-theme-item ${state.settings.theme === key ? 'active' : ''}" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
-        <div class="wheel-spacer" aria-hidden="true"></div>
+      <div class="wheel-labels"><span>模板</span><span>主题</span></div>
+      <div class="template-theme-wheel" data-wheel-root>
+        <div class="wheel-column" data-wheel="template">
+          <div class="wheel-spacer" aria-hidden="true"></div>
+          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-item ${state.settings.template === key ? 'active' : ''}" data-template="${key}">${meta.name}</button>`).join('')}
+          <div class="wheel-spacer" aria-hidden="true"></div>
+        </div>
+        <div class="wheel-column" data-wheel="theme">
+          <div class="wheel-spacer" aria-hidden="true"></div>
+          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-item wheel-theme-item ${state.settings.theme === key ? 'active' : ''}" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
+          <div class="wheel-spacer" aria-hidden="true"></div>
+        </div>
+        <div class="wheel-selection-indicator" aria-hidden="true"></div>
       </div>
-      <div class="wheel-selection-indicator" aria-hidden="true"></div>
-    </div>
-    <div class="template-theme-drawer-actions">
-      <button class="btn mobile-open-preview">查看预览</button>
-      <button class="btn btn-primary mobile-template-done">完成</button>
+      <div class="appearance-wheel-actions">
+        <button class="btn mobile-open-preview">查看预览</button>
+        <button class="btn btn-primary mobile-template-done">完成</button>
+      </div>
     </div>`;
 }
 const wheelState = {
   templateTimer: null,
-  themeTimer: null,
-  initialized: false
+  themeTimer: null
 };
 function updateWheelItemClasses(column, activeItem) {
   const items = Array.from(column.querySelectorAll('.wheel-item'));
-  items.forEach((item) => {
+  const activeIndex = items.indexOf(activeItem);
+  items.forEach((item, index) => {
     item.classList.remove('active', 'adjacent');
-    if (item === activeItem) {
+    if (index === activeIndex) {
       item.classList.add('active');
       return;
     }
-    const distance = Math.abs(items.indexOf(item) - items.indexOf(activeItem));
-    if (distance === 1) item.classList.add('adjacent');
+    if (Math.abs(index - activeIndex) === 1) {
+      item.classList.add('adjacent');
+    }
   });
 }
 function getCenteredWheelItem(column) {
@@ -331,34 +333,34 @@ function getCenteredWheelItem(column) {
   if (!items.length) return null;
   const columnRect = column.getBoundingClientRect();
   const centerY = columnRect.top + columnRect.height / 2;
-  let closest = items[0];
-  let minDistance = Infinity;
+  let nearest = items[0];
+  let nearestDistance = Infinity;
   items.forEach((item) => {
     const rect = item.getBoundingClientRect();
     const itemCenter = rect.top + rect.height / 2;
     const distance = Math.abs(itemCenter - centerY);
-    if (distance < minDistance) {
-      minDistance = distance;
-      closest = item;
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = item;
     }
   });
-  return closest;
+  return nearest;
 }
-function scrollWheelToValue(type, value) {
+function scrollWheelToValue(type, key, behavior = 'auto') {
   const column = document.querySelector(`.wheel-column[data-wheel="${type}"]`);
   if (!column) return;
-  const selector = type === 'template' ? `.wheel-item[data-template="${value}"]` : `.wheel-item[data-theme="${value}"]`;
+  const selector = type === 'template' ? `.wheel-item[data-template="${key}"]` : `.wheel-item[data-theme="${key}"]`;
   const item = column.querySelector(selector);
   if (!item) return;
-  const target = item.offsetTop - (column.clientHeight / 2) + (item.offsetHeight / 2);
-  column.scrollTo({ top: target, behavior: 'auto' });
+  const targetTop = item.offsetTop - (column.clientHeight / 2) + (item.offsetHeight / 2);
+  column.scrollTo({ top: targetTop, behavior });
   updateWheelItemClasses(column, item);
 }
 function updateTemplateThemeSummary() {
   updateEditorMobileSummary();
-  const head = document.querySelector('.template-theme-drawer-head strong');
-  if (head) {
-    head.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+  const summary = document.querySelector('.appearance-current');
+  if (summary) {
+    summary.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
   }
 }
 function updateWheelSelection(type, key) {
@@ -379,26 +381,24 @@ function updateWheelSelection(type, key) {
 function snapWheelToNearestItem(column) {
   const centered = getCenteredWheelItem(column);
   if (!centered) return;
-  const target = centered.offsetTop - (column.clientHeight / 2) + (centered.offsetHeight / 2);
-  column.scrollTo({ top: target, behavior: 'smooth' });
+  const targetTop = centered.offsetTop - (column.clientHeight / 2) + (centered.offsetHeight / 2);
+  column.scrollTo({ top: targetTop, behavior: 'smooth' });
   updateWheelItemClasses(column, centered);
   const type = column.dataset.wheel;
   const key = type === 'template' ? centered.dataset.template : centered.dataset.theme;
   updateWheelSelection(type, key);
 }
-function initWheelPicker() {
-  const root = document.querySelector('[data-wheel-root]');
-  if (!root) return;
-  const columns = root.querySelectorAll('.wheel-column');
+function initTemplateThemeWheel() {
+  const columns = document.querySelectorAll('.wheel-column');
   columns.forEach((column) => {
     const type = column.dataset.wheel;
-    const current = type === 'template' ? state.settings.template : state.settings.theme;
-    scrollWheelToValue(type, current);
+    const key = type === 'template' ? state.settings.template : state.settings.theme;
+    scrollWheelToValue(type, key, 'auto');
     column.onscroll = () => {
       const centered = getCenteredWheelItem(column);
       if (centered) updateWheelItemClasses(column, centered);
       clearTimeout(wheelState[`${type}Timer`]);
-      wheelState[`${type}Timer`] = setTimeout(() => snapWheelToNearestItem(column), 100);
+      wheelState[`${type}Timer`] = setTimeout(() => snapWheelToNearestItem(column), 120);
     };
   });
 }
