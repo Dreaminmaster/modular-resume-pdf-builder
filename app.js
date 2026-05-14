@@ -307,31 +307,39 @@ function openMobileDrawer(title, html) {
   document.getElementById('mobile-drawer-content').innerHTML = html;
   drawer.classList.remove('hidden');
   if (title === '模板与主题') {
-    requestAnimationFrame(() => initTemplateThemeWheel());
+    appearanceOriginal = { template: state.settings.template, theme: state.settings.theme };
+    appearanceDraft = { ...appearanceOriginal };
+    requestAnimationFrame(() => initAppearancePicker());
   }
 }
-function closeMobileDrawer() { document.getElementById('mobile-drawer').classList.add('hidden'); document.getElementById('mobile-drawer-content').innerHTML = ''; }
+function closeMobileDrawer() {
+  document.getElementById('mobile-drawer').classList.add('hidden');
+  document.getElementById('mobile-drawer-content').innerHTML = '';
+  if (appearanceOriginal) {
+    cancelAppearanceDraft();
+  }
+}
 function openMobilePreview() { const modal = document.getElementById('mobile-preview-modal'); const cloneWrap = document.getElementById('mobile-preview-clone'); cloneWrap.innerHTML = ''; const cloned = resumePage.cloneNode(true); cloneWrap.appendChild(cloned); modal.classList.remove('hidden'); }
 function closeMobilePreview() { document.getElementById('mobile-preview-modal').classList.add('hidden'); document.getElementById('mobile-preview-clone').innerHTML = ''; }
 function buildTemplateListHtml() {
-  const currentTemplateName = TEMPLATE_META[state.settings.template].name;
-  const currentThemeName = `${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+  const currentTemplateName = TEMPLATE_META[appearanceDraft?.template || state.settings.template].name;
+  const currentThemeName = `${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].name} ${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].zhName}`;
   return `
     <div class="appearance-wheel-sheet">
       <div class="appearance-wheel-header">
-        <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
+        <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName} </div>
         <div class="appearance-help muted small">模板决定结构，主题决定颜色风格。</div>
       </div>
       <div class="wheel-labels"><span>模板</span><span>主题</span></div>
       <div class="template-theme-wheel" data-wheel-root>
         <div class="wheel-column" data-wheel="template">
           <div class="wheel-spacer" aria-hidden="true"></div>
-          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-item ${state.settings.template === key ? 'active' : ''}" data-template="${key}">${meta.name}</button>`).join('')}
+          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-item ${ (appearanceDraft?.template || state.settings.template) === key ? 'active' : '' }" data-template="${key}">${meta.name}</button>`).join('')}
           <div class="wheel-spacer" aria-hidden="true"></div>
         </div>
         <div class="wheel-column" data-wheel="theme">
           <div class="wheel-spacer" aria-hidden="true"></div>
-          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-item wheel-theme-item ${state.settings.theme === key ? 'active' : ''}" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
+          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-item wheel-theme-item ${ (appearanceDraft?.theme || state.settings.theme) === key ? 'active' : '' }" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
           <div class="wheel-spacer" aria-hidden="true"></div>
         </div>
         <div class="wheel-selection-indicator" aria-hidden="true"></div>
@@ -345,6 +353,31 @@ const wheelState = {
   templateTimer: null,
   themeTimer: null
 };
+let appearanceOriginal = null;
+let appearanceDraft = null;
+function applyAppearanceDraft() {
+  if (!appearanceDraft) return;
+  state.settings.template = appearanceDraft.template;
+  state.settings.theme = appearanceDraft.theme;
+  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
+  applySettings();
+  renderThemePresets();
+  renderPreview();
+  saveState();
+  updateTemplateThemeSummary();
+}
+function cancelAppearanceDraft() {
+  if (!appearanceOriginal) return;
+  appearanceDraft = { ...appearanceOriginal };
+  state.settings.template = appearanceOriginal.template;
+  state.settings.theme = appearanceOriginal.theme;
+  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
+  applySettings();
+  renderThemePresets();
+  renderPreview();
+  saveState();
+  updateTemplateThemeSummary();
+}
 function updateWheelItemClasses(column, activeItem) {
   const items = Array.from(column.querySelectorAll('.wheel-item'));
   const activeIndex = items.indexOf(activeItem);
@@ -396,17 +429,9 @@ function updateTemplateThemeSummary() {
 }
 function updateWheelSelection(type, key) {
   if (!key) return;
-  if (type === 'template' && state.settings.template !== key) {
-    state.settings.template = key;
-  }
-  if (type === 'theme' && state.settings.theme !== key) {
-    state.settings.theme = key;
-    state.settings.themeColor = THEME_PRESETS[key].accent;
-  }
-  applySettings();
-  renderThemePresets();
-  renderPreview();
-  saveState();
+  if (!appearanceDraft) appearanceDraft = { template: state.settings.template, theme: state.settings.theme };
+  if (type === 'template') appearanceDraft.template = key;
+  if (type === 'theme') appearanceDraft.theme = key;
   updateTemplateThemeSummary();
 }
 function snapWheelToNearestItem(column) {
@@ -419,11 +444,14 @@ function snapWheelToNearestItem(column) {
   const key = type === 'template' ? centered.dataset.template : centered.dataset.theme;
   updateWheelSelection(type, key);
 }
+function initAppearancePicker() {
+  initTemplateThemeWheel();
+}
 function initTemplateThemeWheel() {
   const columns = document.querySelectorAll('.wheel-column');
   columns.forEach((column) => {
     const type = column.dataset.wheel;
-    const key = type === 'template' ? state.settings.template : state.settings.theme;
+    const key = type === 'template' ? (appearanceDraft?.template || state.settings.template) : (appearanceDraft?.theme || state.settings.theme);
     scrollWheelToValue(type, key, 'auto');
     column.onscroll = () => {
       const centered = getCenteredWheelItem(column);
@@ -507,7 +535,9 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'mobile-preview-btn') openMobilePreview();
   if (e.target.id === 'mobile-export-btn') exportPDF();
   if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml());
-  if (e.target.id === 'mobile-drawer-close') closeMobileDrawer();
+  if (e.target.id === 'mobile-drawer-close') {
+    closeMobileDrawer();
+  }
   if (e.target.id === 'mobile-preview-close') closeMobilePreview();
   if (e.target.id === 'mobile-preview-export') exportPDF();
   if (e.target.id === 'editor-mobile-change-template') openMobileDrawer('模板与主题', buildTemplateListHtml());
@@ -543,7 +573,13 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  if (e.target.classList.contains('mobile-template-done')) { closeMobileDrawer(); return; }
+  if (e.target.classList.contains('mobile-template-done')) {
+    applyAppearanceDraft();
+    appearanceOriginal = null;
+    appearanceDraft = null;
+    closeMobileDrawer();
+    return;
+  }
   if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   if (e.target.classList.contains('mobile-open-module-order')) { openMobileDrawer('简历内容排序', buildMobileModuleOrderHtml()); }
   if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); }
