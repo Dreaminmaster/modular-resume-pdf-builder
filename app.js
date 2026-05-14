@@ -127,13 +127,32 @@ function updateModuleStatusIndicators() {
   });
 }
 function updatePreviewOnly() { renderPreview(); updateModuleStatusIndicators(); saveState(); }
+function setModuleVisibility(moduleKey, visible) {
+  if (!state.modules[moduleKey]) return;
+  state.modules[moduleKey].visible = visible;
+  refreshModuleVisibilityStructure();
+}
 function refreshModuleVisibilityStructure() {
+  const active = document.activeElement;
   renderNav();
-  renderOrderControls();
+  editorContent.replaceChildren();
   renderEditor();
   renderPreview();
   updateModuleStatusIndicators();
   saveState();
+  if (active && typeof active.focus === 'function') {
+    // 模块显示/隐藏属于结构变化，不强求恢复焦点；这里只保留防御性分支
+  }
+}
+function handleMobileScopeChipClick(key) {
+  const mod = state.modules[key];
+  if (!mod) return;
+  mod.visible = !mod.visible;
+  saveState();
+  renderNav();
+  renderEditor();
+  renderPreview();
+  updateModuleStatusIndicators();
 }
 function getActiveThemePreset() {
   return THEME_PRESETS[state.settings.theme] || THEME_PRESETS.navy;
@@ -240,6 +259,9 @@ function renderNav() {
       pill.className = 'mobile-module-pill' + (mod.visible ? ' selected' : '') + (filled ? ' filled' : '') + (def.key === activeKey ? ' active' : '');
       pill.dataset.mobileToggleModule = def.key;
       pill.innerHTML = `<span class="pill-check">${mod.visible ? '✓' : ''}</span><span class="pill-label">${moduleTitle(def)}</span>${filled ? '<span class="pill-status-dot"></span>' : ''}`;
+      pill.onclick = () => {
+        handleMobileScopeChipClick(def.key);
+      };
       mobileModuleNav.appendChild(pill);
     }
   });
@@ -492,9 +514,6 @@ document.addEventListener('click', (e) => {
 
   const mobileModulePill = e.target.closest('[data-mobile-toggle-module]');
   if (mobileModulePill) {
-    const key = mobileModulePill.dataset.mobileToggleModule;
-    state.modules[key].visible = !state.modules[key].visible;
-    refreshModuleVisibilityStructure();
     return;
   }
 
