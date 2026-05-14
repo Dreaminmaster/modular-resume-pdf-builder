@@ -301,10 +301,15 @@ function renderCampusLayout(order) { const leftKeys = ['education', 'skills', 'l
 function renderPreview() { if (isMeaningfullyEmpty()) { resumePage.innerHTML = renderEmptyState(); applyResumeTypographyClasses(); return requestAnimationFrame(checkPageOverflow); } const template = state.settings.template; const order = getPreviewOrder(template); if (template === 'campus') { resumePage.innerHTML = renderCampusLayout(order); applyResumeTypographyClasses(); return requestAnimationFrame(checkPageOverflow); } const parts = [renderHeader()]; order.forEach(key => { if (key === 'experience') parts.push(renderCombinedExperience()); else if (key === 'summary') parts.push(renderSummary()); else parts.push(renderListModule(key)); }); resumePage.innerHTML = parts.join(''); applyResumeTypographyClasses(); requestAnimationFrame(checkPageOverflow); }
 function checkPageOverflow() { const pxPerMm = 96 / 25.4; const a4Height = 297 * pxPerMm; const ratio = resumePage.scrollHeight / a4Height; const pageStateEl = document.getElementById('current-page-status'); if (ratio <= 1.02) { pageWarning.textContent = '当前内容基本可控制在一页 A4 内。'; if (pageStateEl) pageStateEl.textContent = 'A4 单页'; } else if (ratio <= 1.35) { pageWarning.textContent = '当前内容略超一页，建议精简 1-2 个条目或描述。'; if (pageStateEl) pageStateEl.textContent = '接近两页'; } else { pageWarning.textContent = '当前内容明显超过一页，导出时将自动分页。'; if (pageStateEl) pageStateEl.textContent = '多页'; } pageWarning.classList.remove('hidden'); }
 
-function openMobileDrawer(title, html) {
+function openMobileDrawer(title, html, options = {}) {
   const drawer = document.getElementById('mobile-drawer');
+  const panel = drawer.querySelector('.mobile-drawer-panel');
   document.getElementById('mobile-drawer-title').textContent = title;
   document.getElementById('mobile-drawer-content').innerHTML = html;
+  panel.className = 'mobile-drawer-panel';
+  if (options.panelClass) {
+    panel.classList.add(options.panelClass);
+  }
   drawer.classList.remove('hidden');
   if (title === '模板与主题') {
     appearanceOriginal = { template: state.settings.template, theme: state.settings.theme };
@@ -312,11 +317,16 @@ function openMobileDrawer(title, html) {
     requestAnimationFrame(() => initAppearancePicker());
   }
 }
-function closeMobileDrawer() {
+function closeMobileDrawerSilently() {
   document.getElementById('mobile-drawer').classList.add('hidden');
   document.getElementById('mobile-drawer-content').innerHTML = '';
+}
+function closeMobileDrawer() {
+  closeMobileDrawerSilently();
   if (appearanceOriginal) {
     cancelAppearanceDraft();
+    appearanceOriginal = null;
+    appearanceDraft = null;
   }
 }
 function openMobilePreview() { const modal = document.getElementById('mobile-preview-modal'); const cloneWrap = document.getElementById('mobile-preview-clone'); cloneWrap.innerHTML = ''; const cloned = resumePage.cloneNode(true); cloneWrap.appendChild(cloned); modal.classList.remove('hidden'); }
@@ -325,27 +335,27 @@ function buildTemplateListHtml() {
   const currentTemplateName = TEMPLATE_META[appearanceDraft?.template || state.settings.template].name;
   const currentThemeName = `${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].name} ${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].zhName}`;
   return `
-    <div class="appearance-wheel-sheet">
-      <div class="appearance-wheel-header">
-        <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName} </div>
-        <div class="appearance-help muted small">模板决定结构，主题决定颜色风格。</div>
+    <div class="appearance-sheet">
+      <div class="appearance-sheet-header">
+        <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
+        <button class="icon-btn appearance-close" type="button">关闭</button>
       </div>
-      <div class="wheel-labels"><span>模板</span><span>主题</span></div>
-      <div class="template-theme-wheel" data-wheel-root>
-        <div class="wheel-column" data-wheel="template">
-          <div class="wheel-spacer" aria-hidden="true"></div>
-          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-item ${ (appearanceDraft?.template || state.settings.template) === key ? 'active' : '' }" data-template="${key}">${meta.name}</button>`).join('')}
-          <div class="wheel-spacer" aria-hidden="true"></div>
+      <div class="appearance-picker-labels"><span>模板</span><span>主题</span></div>
+      <div class="appearance-picker template-theme-wheel" data-wheel-root>
+        <div class="picker-column wheel-column" data-wheel="template">
+          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
+          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="picker-item wheel-item ${ (appearanceDraft?.template || state.settings.template) === key ? 'active' : '' }" data-template="${key}">${meta.name}</button>`).join('')}
+          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
         </div>
-        <div class="wheel-column" data-wheel="theme">
-          <div class="wheel-spacer" aria-hidden="true"></div>
-          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-item wheel-theme-item ${ (appearanceDraft?.theme || state.settings.theme) === key ? 'active' : '' }" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
-          <div class="wheel-spacer" aria-hidden="true"></div>
+        <div class="picker-column wheel-column" data-wheel="theme">
+          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
+          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="picker-item wheel-item wheel-theme-item ${ (appearanceDraft?.theme || state.settings.theme) === key ? 'active' : '' }" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
+          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
         </div>
-        <div class="wheel-selection-indicator" aria-hidden="true"></div>
+        <div class="picker-selection wheel-selection-indicator" aria-hidden="true"></div>
       </div>
-      <div class="appearance-wheel-actions">
-        <button class="btn btn-primary mobile-template-done">完成</button>
+      <div class="appearance-sheet-footer">
+        <button class="btn btn-primary appearance-confirm mobile-template-done">完成</button>
       </div>
     </div>`;
 }
@@ -366,17 +376,11 @@ function applyAppearanceDraft() {
   saveState();
   updateTemplateThemeSummary();
 }
-function cancelAppearanceDraft() {
-  if (!appearanceOriginal) return;
-  appearanceDraft = { ...appearanceOriginal };
-  state.settings.template = appearanceOriginal.template;
-  state.settings.theme = appearanceOriginal.theme;
-  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
-  applySettings();
-  renderThemePresets();
-  renderPreview();
-  saveState();
-  updateTemplateThemeSummary();
+function cancelAppearancePicker() {
+  cancelAppearanceDraft();
+  appearanceOriginal = null;
+  appearanceDraft = null;
+  closeMobileDrawerSilently();
 }
 function updateWheelItemClasses(column, activeItem) {
   const items = Array.from(column.querySelectorAll('.wheel-item'));
@@ -531,16 +535,25 @@ document.addEventListener('click', (e) => {
 
   // 其他点击事件
   if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (e.target.id === 'mobile-template-btn') openMobileDrawer('模板与主题', buildTemplateListHtml());
+  if (e.target.id === 'mobile-template-btn') openMobileDrawer('模板与主题', buildTemplateListHtml(), { panelClass: 'appearance-drawer-panel' });
   if (e.target.id === 'mobile-preview-btn') openMobilePreview();
   if (e.target.id === 'mobile-export-btn') exportPDF();
   if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml());
   if (e.target.id === 'mobile-drawer-close') {
-    closeMobileDrawer();
+    if (appearanceOriginal) {
+      cancelAppearancePicker();
+    } else {
+      closeMobileDrawerSilently();
+    }
+    return;
+  }
+  if (e.target.closest('.appearance-close')) {
+    cancelAppearancePicker();
+    return;
   }
   if (e.target.id === 'mobile-preview-close') closeMobilePreview();
   if (e.target.id === 'mobile-preview-export') exportPDF();
-  if (e.target.id === 'editor-mobile-change-template') openMobileDrawer('模板与主题', buildTemplateListHtml());
+  if (e.target.id === 'editor-mobile-change-template') openMobileDrawer('模板与主题', buildTemplateListHtml(), { panelClass: 'appearance-drawer-panel' });
 
   const mobileModulePill = e.target.closest('[data-mobile-toggle-module]');
   if (mobileModulePill) {
