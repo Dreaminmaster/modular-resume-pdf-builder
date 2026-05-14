@@ -127,6 +127,14 @@ function updateModuleStatusIndicators() {
   });
 }
 function updatePreviewOnly() { renderPreview(); updateModuleStatusIndicators(); saveState(); }
+function refreshModuleVisibilityStructure() {
+  renderNav();
+  renderOrderControls();
+  renderEditor();
+  renderPreview();
+  updateModuleStatusIndicators();
+  saveState();
+}
 function getActiveThemePreset() {
   return THEME_PRESETS[state.settings.theme] || THEME_PRESETS.navy;
 }
@@ -307,7 +315,6 @@ function buildTemplateListHtml() {
         <div class="wheel-selection-indicator" aria-hidden="true"></div>
       </div>
       <div class="appearance-wheel-actions">
-        <button class="btn mobile-open-preview">查看预览</button>
         <button class="btn btn-primary mobile-template-done">完成</button>
       </div>
     </div>`;
@@ -487,7 +494,7 @@ document.addEventListener('click', (e) => {
   if (mobileModulePill) {
     const key = mobileModulePill.dataset.mobileToggleModule;
     state.modules[key].visible = !state.modules[key].visible;
-    updateVisibilityOnly();
+    refreshModuleVisibilityStructure();
     return;
   }
 
