@@ -227,9 +227,11 @@ function renderNav() {
     moduleNav.appendChild(row);
 
     if (mobileModuleNav) {
-      const pill = document.createElement('label');
-      pill.className = 'mobile-module-pill' + (filled ? ' filled' : '') + (def.key === activeKey ? ' active' : '');
-      pill.innerHTML = `<input class="checkbox" type="checkbox" ${mod.visible ? 'checked' : ''} data-action="toggle-module" data-module="${def.key}"><span>${moduleTitle(def)}</span>`;
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'mobile-module-pill' + (mod.visible ? ' selected' : '') + (filled ? ' filled' : '') + (def.key === activeKey ? ' active' : '');
+      pill.dataset.mobileToggleModule = def.key;
+      pill.innerHTML = `<span class="pill-check">${mod.visible ? '✓' : ''}</span><span class="pill-label">${moduleTitle(def)}</span>${filled ? '<span class="pill-status-dot"></span>' : ''}`;
       mobileModuleNav.appendChild(pill);
     }
   });
@@ -416,11 +418,9 @@ function buildThemePresetHtml() {
 }
 function buildMoreMenuHtml() {
   const t = state.settings.typography || { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' };
-  const currentTemplateName = TEMPLATE_META[state.settings.template].name;
-  const currentThemeName = THEME_PRESETS[state.settings.theme].zhName;
   return `
     <div class="section-actions" style="display:grid;gap:10px;">
-      <div class="panel-title" style="margin:0;">简历排版设置</div>
+      <div class="panel-title" style="margin:0;">简历排版</div>
       <label class="control-label">排版密度</label>
       <select class="input mobile-typography-control" data-typography-key="density">
         <option value="compact" ${t.density === 'compact' ? 'selected' : ''}>紧凑</option>
@@ -439,14 +439,9 @@ function buildMoreMenuHtml() {
         <option value="standard" ${t.margin === 'standard' ? 'selected' : ''}>标准</option>
         <option value="wide" ${t.margin === 'wide' ? 'selected' : ''}>宽</option>
       </select>
-      <label class="control-label">强调色</label>
-      <select class="input mobile-typography-control" data-typography-key="accent">
-        <option value="theme" ${t.accent === 'theme' ? 'selected' : ''}>跟随主题</option>
-        <option value="black" ${t.accent === 'black' ? 'selected' : ''}>黑色</option>
-        <option value="blue" ${t.accent === 'blue' ? 'selected' : ''}>蓝色</option>
-        <option value="purple" ${t.accent === 'purple' ? 'selected' : ''}>紫色</option>
-      </select>
       <button class="btn mobile-typography-reset">重置排版</button>
+      <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
+      <div class="panel-title" style="margin:0;">内容管理</div>
       <button class="btn mobile-open-module-order">简历内容排序</button>
       <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
       <div class="panel-title" style="margin:0;">数据备份</div>
@@ -456,7 +451,6 @@ function buildMoreMenuHtml() {
       <hr style="border:none;border-top:1px solid rgba(148,163,184,.18);margin:4px 0;">
       <div class="panel-title" style="margin:0;">JSON Resume</div>
       <button class="btn mobile-export-jsonresume">导出 JSON Resume</button>
-      <button class="btn mobile-open-advanced">打开高级设置</button>
     </div>`;
 }
 
@@ -488,6 +482,14 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'mobile-preview-close') closeMobilePreview();
   if (e.target.id === 'mobile-preview-export') exportPDF();
   if (e.target.id === 'editor-mobile-change-template') openMobileDrawer('模板与主题', buildTemplateListHtml());
+
+  const mobileModulePill = e.target.closest('[data-mobile-toggle-module]');
+  if (mobileModulePill) {
+    const key = mobileModulePill.dataset.mobileToggleModule;
+    state.modules[key].visible = !state.modules[key].visible;
+    updateVisibilityOnly();
+    return;
+  }
 
   const option = e.target.closest('.mobile-template-option');
   if (option) {
