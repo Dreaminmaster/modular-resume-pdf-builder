@@ -376,6 +376,17 @@ function applyAppearanceDraft() {
   saveState();
   updateTemplateThemeSummary();
 }
+function cancelAppearanceDraft() {
+  if (!appearanceOriginal) return;
+  appearanceDraft = { ...appearanceOriginal };
+  state.settings.template = appearanceOriginal.template;
+  state.settings.theme = appearanceOriginal.theme;
+  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
+  applySettings();
+  renderThemePresets();
+  renderPreview();
+  updateTemplateThemeSummary();
+}
 function cancelAppearancePicker() {
   cancelAppearanceDraft();
   appearanceOriginal = null;
