@@ -563,10 +563,13 @@ input[type="range"] { width: 100%; }
 .wheel-column {
   position: relative;
   overflow-y: auto;
+  overflow-x: hidden;
   scroll-snap-type: y mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
   padding-top: var(--wheel-pad, 96px);
   padding-bottom: var(--wheel-pad, 96px);
   mask-image: linear-gradient(to bottom, transparent 0%, black 24%, black 76%, transparent 100%);
@@ -605,6 +608,7 @@ input[type="range"] { width: 100%; }
 }
 .appearance-picker {
   height: 150px;
+  overscroll-behavior: contain;
 }
 .wheel-column::-webkit-scrollbar {
   display: none;
@@ -838,12 +842,15 @@ input[type="range"] { width: 100%; }
     padding: 16px 16px calc(32px + env(safe-area-inset-bottom));
     max-height: 72vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
   }
   .appearance-drawer-panel {
     border-radius: 24px 24px 0 0;
     padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
     height: clamp(240px, 30vh, 320px);
     overflow: hidden;
+    overscroll-behavior: contain;
   }
   .mobile-preview-modal {
     display: block; position: fixed; inset: 0; z-index: 70; background: #f8fafc; overflow: auto; padding: 14px 12px calc(32px + env(safe-area-inset-bottom));

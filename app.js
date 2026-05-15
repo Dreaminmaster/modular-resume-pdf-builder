@@ -338,7 +338,6 @@ function buildTemplateListHtml() {
     <div class="appearance-sheet">
       <div class="appearance-sheet-header">
         <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
-        <button class="icon-btn appearance-close" type="button">关闭</button>
       </div>
       <div class="appearance-picker-labels"><span>模板</span><span>主题</span></div>
       <div class="appearance-picker template-theme-wheel" data-wheel-root>
@@ -447,6 +446,14 @@ function updateWheelSelection(type, key) {
   if (!appearanceDraft) appearanceDraft = { template: state.settings.template, theme: state.settings.theme };
   if (type === 'template') appearanceDraft.template = key;
   if (type === 'theme') appearanceDraft.theme = key;
+
+  // 实时试穿：滚动时临时把 draft 应用到页面，但不保存
+  state.settings.template = appearanceDraft.template;
+  state.settings.theme = appearanceDraft.theme;
+  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
+  applySettings();
+  renderThemePresets();
+  renderPreview();
   updateTemplateThemeSummary();
 }
 function snapWheelToNearestItem(column) {
