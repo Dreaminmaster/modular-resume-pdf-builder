@@ -336,22 +336,20 @@ function buildTemplateListHtml() {
   const currentThemeName = `${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].name} ${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].zhName}`;
   return `
     <div class="appearance-sheet">
-      <div class="appearance-sheet-header">
-        <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
-      </div>
-      <div class="appearance-picker-labels"><span>模板</span><span>主题</span></div>
-      <div class="appearance-picker template-theme-wheel" data-wheel-root>
-        <div class="picker-column wheel-column" data-wheel="template">
-          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
-          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="picker-item wheel-item ${ (appearanceDraft?.template || state.settings.template) === key ? 'active' : '' }" data-template="${key}">${meta.name}</button>`).join('')}
-          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
+      <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
+      <div class="picker-label-row"><span>模板</span><span>主题</span></div>
+      <div class="mobile-wheel-picker" data-appearance-picker>
+        <div class="wheel-column picker-column" data-wheel-type="template" data-wheel="template">
+          <div class="wheel-spacer picker-spacer"></div>
+          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-option picker-item ${ (appearanceDraft?.template || state.settings.template) === key ? 'is-active active' : '' }" data-template="${key}">${meta.name}</button>`).join('')}
+          <div class="wheel-spacer picker-spacer"></div>
         </div>
-        <div class="picker-column wheel-column" data-wheel="theme">
-          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
-          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="picker-item wheel-item wheel-theme-item ${ (appearanceDraft?.theme || state.settings.theme) === key ? 'active' : '' }" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span class="wheel-label"><strong>${preset.name}</strong><span>${preset.zhName}</span></span></button>`).join('')}
-          <div class="picker-spacer wheel-spacer" aria-hidden="true"></div>
+        <div class="wheel-column picker-column" data-wheel-type="theme" data-wheel="theme">
+          <div class="wheel-spacer picker-spacer"></div>
+          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-option picker-item theme-option ${ (appearanceDraft?.theme || state.settings.theme) === key ? 'is-active active' : '' }" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span>${preset.name} ${preset.zhName}</span></button>`).join('')}
+          <div class="wheel-spacer picker-spacer"></div>
         </div>
-        <div class="picker-selection wheel-selection-indicator" aria-hidden="true"></div>
+        <div class="wheel-center-indicator picker-selection"></div>
       </div>
       <div class="appearance-sheet-footer">
         <button class="btn btn-primary appearance-confirm mobile-template-done">完成</button>
@@ -393,21 +391,20 @@ function cancelAppearancePicker() {
   closeMobileDrawerSilently();
 }
 function updateWheelItemClasses(column, activeItem) {
-  const items = Array.from(column.querySelectorAll('.wheel-item'));
+  const items = Array.from(column.querySelectorAll('.wheel-option'));
   const activeIndex = items.indexOf(activeItem);
   items.forEach((item, index) => {
-    item.classList.remove('active', 'adjacent');
-    if (index === activeIndex) {
-      item.classList.add('active');
-      return;
-    }
-    if (Math.abs(index - activeIndex) === 1) {
-      item.classList.add('adjacent');
+    item.classList.remove('is-active', 'is-near', 'active', 'adjacent');
+    const distance = Math.abs(index - activeIndex);
+    if (distance === 0) {
+      item.classList.add('is-active', 'active');
+    } else if (distance === 1) {
+      item.classList.add('is-near', 'adjacent');
     }
   });
 }
 function getCenteredWheelItem(column) {
-  const items = Array.from(column.querySelectorAll('.wheel-item'));
+  const items = Array.from(column.querySelectorAll('.wheel-option'));
   if (!items.length) return null;
   const columnRect = column.getBoundingClientRect();
   const centerY = columnRect.top + columnRect.height / 2;
@@ -427,7 +424,7 @@ function getCenteredWheelItem(column) {
 function scrollWheelToValue(type, key, behavior = 'auto') {
   const column = document.querySelector(`.wheel-column[data-wheel="${type}"]`);
   if (!column) return;
-  const selector = type === 'template' ? `.wheel-item[data-template="${key}"]` : `.wheel-item[data-theme="${key}"]`;
+  const selector = type === 'template' ? `.wheel-option[data-template="${key}"]` : `.wheel-option[data-theme="${key}"]`;
   const item = column.querySelector(selector);
   if (!item) return;
   const targetTop = item.offsetTop - (column.clientHeight / 2) + (item.offsetHeight / 2);
