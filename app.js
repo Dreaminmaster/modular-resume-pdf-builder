@@ -311,9 +311,7 @@ function openMobileDrawer(title, html, options = {}) {
     panel.classList.add(options.panelClass);
   }
   drawer.classList.remove('hidden');
-  if (title === '模板与主题') {
-    appearanceOriginal = { template: state.settings.template, theme: state.settings.theme };
-    appearanceDraft = { ...appearanceOriginal };
+  if (title === '外观') {
     requestAnimationFrame(() => initAppearancePicker());
   }
 }
@@ -323,163 +321,33 @@ function closeMobileDrawerSilently() {
 }
 function closeMobileDrawer() {
   closeMobileDrawerSilently();
-  if (appearanceOriginal) {
-    cancelAppearanceDraft();
-    appearanceOriginal = null;
-    appearanceDraft = null;
-  }
 }
 function openMobilePreview() { const modal = document.getElementById('mobile-preview-modal'); const cloneWrap = document.getElementById('mobile-preview-clone'); cloneWrap.innerHTML = ''; const cloned = resumePage.cloneNode(true); cloneWrap.appendChild(cloned); modal.classList.remove('hidden'); }
 function closeMobilePreview() { document.getElementById('mobile-preview-modal').classList.add('hidden'); document.getElementById('mobile-preview-clone').innerHTML = ''; }
 function buildTemplateListHtml() {
-  const currentTemplateName = TEMPLATE_META[appearanceDraft?.template || state.settings.template].name;
-  const currentThemeName = `${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].name} ${THEME_PRESETS[appearanceDraft?.theme || state.settings.theme].zhName}`;
+  const currentTemplateName = TEMPLATE_META[state.settings.template].name;
+  const currentThemeName = `${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
   return `
-    <div class="appearance-sheet">
+    <div class="appearance-select-sheet">
       <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
-      <div class="picker-label-row"><span>模板</span><span>主题</span></div>
-      <div class="mobile-wheel-picker" data-appearance-picker>
-        <div class="wheel-column picker-column" data-wheel-type="template" data-wheel="template">
-          <div class="wheel-spacer picker-spacer"></div>
-          ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<button type="button" class="wheel-option picker-item ${ (appearanceDraft?.template || state.settings.template) === key ? 'is-active active' : '' }" data-template="${key}">${meta.name}</button>`).join('')}
-          <div class="wheel-spacer picker-spacer"></div>
-        </div>
-        <div class="wheel-column picker-column" data-wheel-type="theme" data-wheel="theme">
-          <div class="wheel-spacer picker-spacer"></div>
-          ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<button type="button" class="wheel-option picker-item theme-option ${ (appearanceDraft?.theme || state.settings.theme) === key ? 'is-active active' : '' }" data-theme="${key}"><span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft};--dot-border:${preset.border};"></span><span>${preset.name} ${preset.zhName}</span></button>`).join('')}
-          <div class="wheel-spacer picker-spacer"></div>
-        </div>
-        <div class="wheel-center-indicator picker-selection"></div>
+      <div class="appearance-select-grid">
+        <label class="appearance-select-field">
+          <span>模板</span>
+          <select id="mobile-template-select">
+            ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<option value="${key}" ${state.settings.template === key ? 'selected' : ''}>${meta.name}</option>`).join('')}
+          </select>
+        </label>
+        <label class="appearance-select-field">
+          <span>主题</span>
+          <select id="mobile-theme-select">
+            ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<option value="${key}" ${state.settings.theme === key ? 'selected' : ''}>${preset.name} ${preset.zhName}</option>`).join('')}
+          </select>
+        </label>
       </div>
-      <div class="appearance-sheet-footer">
-        <button class="btn btn-primary appearance-confirm mobile-template-done">完成</button>
-      </div>
+      <p class="appearance-select-note">模板决定结构，主题决定颜色。</p>
     </div>`;
 }
-const wheelState = {
-  templateTimer: null,
-  themeTimer: null
-};
-let appearanceOriginal = null;
-let appearanceDraft = null;
-function applyAppearanceDraft() {
-  if (!appearanceDraft) return;
-  state.settings.template = appearanceDraft.template;
-  state.settings.theme = appearanceDraft.theme;
-  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
-  applySettings();
-  renderThemePresets();
-  renderPreview();
-  saveState();
-  updateTemplateThemeSummary();
-}
-function cancelAppearanceDraft() {
-  if (!appearanceOriginal) return;
-  appearanceDraft = { ...appearanceOriginal };
-  state.settings.template = appearanceOriginal.template;
-  state.settings.theme = appearanceOriginal.theme;
-  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
-  applySettings();
-  renderThemePresets();
-  renderPreview();
-  updateTemplateThemeSummary();
-}
-function cancelAppearancePicker() {
-  cancelAppearanceDraft();
-  appearanceOriginal = null;
-  appearanceDraft = null;
-  closeMobileDrawerSilently();
-}
-function updateWheelItemClasses(column, activeItem) {
-  const items = Array.from(column.querySelectorAll('.wheel-option'));
-  const activeIndex = items.indexOf(activeItem);
-  items.forEach((item, index) => {
-    item.classList.remove('is-active', 'is-near', 'active', 'adjacent');
-    const distance = Math.abs(index - activeIndex);
-    if (distance === 0) {
-      item.classList.add('is-active', 'active');
-    } else if (distance === 1) {
-      item.classList.add('is-near', 'adjacent');
-    }
-  });
-}
-function getCenteredWheelItem(column) {
-  const items = Array.from(column.querySelectorAll('.wheel-option'));
-  if (!items.length) return null;
-  const columnRect = column.getBoundingClientRect();
-  const centerY = columnRect.top + columnRect.height / 2;
-  let nearest = items[0];
-  let nearestDistance = Infinity;
-  items.forEach((item) => {
-    const rect = item.getBoundingClientRect();
-    const itemCenter = rect.top + rect.height / 2;
-    const distance = Math.abs(itemCenter - centerY);
-    if (distance < nearestDistance) {
-      nearestDistance = distance;
-      nearest = item;
-    }
-  });
-  return nearest;
-}
-function scrollWheelToValue(type, key, behavior = 'auto') {
-  const column = document.querySelector(`.wheel-column[data-wheel="${type}"]`);
-  if (!column) return;
-  const selector = type === 'template' ? `.wheel-option[data-template="${key}"]` : `.wheel-option[data-theme="${key}"]`;
-  const item = column.querySelector(selector);
-  if (!item) return;
-  const targetTop = item.offsetTop - (column.clientHeight / 2) + (item.offsetHeight / 2);
-  column.scrollTo({ top: targetTop, behavior });
-  updateWheelItemClasses(column, item);
-}
-function updateTemplateThemeSummary() {
-  updateEditorMobileSummary();
-  const summary = document.querySelector('.appearance-current');
-  if (summary) {
-    summary.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
-  }
-}
-function updateWheelSelection(type, key) {
-  if (!key) return;
-  if (!appearanceDraft) appearanceDraft = { template: state.settings.template, theme: state.settings.theme };
-  if (type === 'template') appearanceDraft.template = key;
-  if (type === 'theme') appearanceDraft.theme = key;
-
-  // 实时试穿：滚动时临时把 draft 应用到页面，但不保存
-  state.settings.template = appearanceDraft.template;
-  state.settings.theme = appearanceDraft.theme;
-  state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
-  applySettings();
-  renderThemePresets();
-  renderPreview();
-  updateTemplateThemeSummary();
-}
-function snapWheelToNearestItem(column) {
-  const centered = getCenteredWheelItem(column);
-  if (!centered) return;
-  const targetTop = centered.offsetTop - (column.clientHeight / 2) + (centered.offsetHeight / 2);
-  column.scrollTo({ top: targetTop, behavior: 'smooth' });
-  updateWheelItemClasses(column, centered);
-  const type = column.dataset.wheel;
-  const key = type === 'template' ? centered.dataset.template : centered.dataset.theme;
-  updateWheelSelection(type, key);
-}
-function initAppearancePicker() {
-  initTemplateThemeWheel();
-}
-function initTemplateThemeWheel() {
-  const columns = document.querySelectorAll('.wheel-column');
-  columns.forEach((column) => {
-    const type = column.dataset.wheel;
-    const key = type === 'template' ? (appearanceDraft?.template || state.settings.template) : (appearanceDraft?.theme || state.settings.theme);
-    scrollWheelToValue(type, key, 'auto');
-    column.onscroll = () => {
-      const centered = getCenteredWheelItem(column);
-      if (centered) updateWheelItemClasses(column, centered);
-      clearTimeout(wheelState[`${type}Timer`]);
-      wheelState[`${type}Timer`] = setTimeout(() => snapWheelToNearestItem(column), 120);
-    };
-  });
-}
+function initAppearancePicker() {}
 
 function buildMobileModuleOrderHtml() {
   const defs = moduleDefs();
@@ -555,15 +423,11 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'mobile-export-btn') exportPDF();
   if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml());
   if (e.target.id === 'mobile-drawer-close') {
-    if (appearanceOriginal) {
-      cancelAppearancePicker();
-    } else {
-      closeMobileDrawerSilently();
-    }
+    closeMobileDrawerSilently();
     return;
   }
   if (e.target.closest('.appearance-close')) {
-    cancelAppearancePicker();
+    closeMobileDrawerSilently();
     return;
   }
   if (e.target.id === 'mobile-preview-close') closeMobilePreview();
@@ -575,39 +439,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  const option = e.target.closest('.mobile-template-option');
-  if (option) {
-    state.settings.template = option.dataset.template;
-    applySettings();
-    renderNav();
-    renderOrderControls();
-    renderEditor();
-    renderPreview();
-    saveState();
-    updateEditorMobileSummary();
-    openMobileDrawer('模板与主题', buildTemplateListHtml());
-    return;
-  }
-
-  const mobileTheme = e.target.closest('.mobile-theme-option');
-  if (mobileTheme) {
-    state.settings.theme = mobileTheme.dataset.mobileTheme;
-    applySettings();
-    renderThemePresets();
-    renderPreview();
-    saveState();
-    updateEditorMobileSummary();
-    openMobileDrawer('模板与主题', buildTemplateListHtml());
-    return;
-  }
-
-  if (e.target.classList.contains('mobile-template-done')) {
-    applyAppearanceDraft();
-    appearanceOriginal = null;
-    appearanceDraft = null;
-    closeMobileDrawer();
-    return;
-  }
   if (e.target.classList.contains('mobile-open-advanced')) { closeMobileDrawer(); const adv = document.querySelector('.advanced-settings'); adv.open = true; adv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   if (e.target.classList.contains('mobile-open-module-order')) { openMobileDrawer('简历内容排序', buildMobileModuleOrderHtml()); }
   if (e.target.classList.contains('mobile-export-json')) { closeMobileDrawer(); document.getElementById('export-json-btn').click(); }
@@ -617,7 +448,42 @@ document.addEventListener('click', (e) => {
   if (e.target.classList.contains('mobile-typography-reset')) { state.settings.typography = { density: 'standard', fontSize: 'standard', margin: 'standard', accent: 'theme' }; closeMobileDrawer(); applySettings(); renderPreview(); saveState(); }
   if (e.target.classList.contains('mobile-open-preview')) { closeMobileDrawer(); openMobilePreview(); }
 });
-window.addEventListener('change', (e) => { const t = e.target, action = t.dataset.action; if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; } if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; } if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); return; } if (t.classList.contains('mobile-typography-control')) { const key = t.dataset.typographyKey; state.settings.typography[key] = t.value; renderPreview(); saveState(); return; } });
+window.addEventListener('change', (e) => {
+  const t = e.target, action = t.dataset.action;
+  if (t.id === 'mobile-template-select') {
+    state.settings.template = t.value;
+    applySettings();
+    renderEditor();
+    renderPreview();
+    updateEditorMobileSummary();
+    saveState();
+    const current = document.querySelector('.appearance-current');
+    if (current) {
+      current.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+    }
+    return;
+  }
+  if (t.id === 'mobile-theme-select') {
+    state.settings.theme = t.value;
+    state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
+    applySettings();
+    renderThemePresets();
+    renderPreview();
+    updateEditorMobileSummary();
+    saveState();
+    const current = document.querySelector('.appearance-current');
+    if (current) {
+      current.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+    }
+    return;
+  }
+  if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; }
+  if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; }
+  if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; }
+  if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; }
+  if (t.id === 'avatar-input') { const file = t.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.modules.personalInfo.fields.avatar.value = reader.result; state.modules.personalInfo.fields.avatar.visible = true; render(); }; reader.readAsDataURL(file); return; }
+  if (t.classList.contains('mobile-typography-control')) { const key = t.dataset.typographyKey; state.settings.typography[key] = t.value; renderPreview(); saveState(); return; }
+});
 window.addEventListener('input', (e) => {
   const t = e.target, action = t.dataset.action;
   if (action === 'update-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].value = t.value; else state.modules[t.dataset.module].fields[t.dataset.field].value = t.value; updatePreviewOnly(); return; }
