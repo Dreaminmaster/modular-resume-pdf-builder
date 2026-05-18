@@ -307,16 +307,17 @@ function openMobileDrawer(title, html, options = {}) {
   document.getElementById('mobile-drawer-title').textContent = title;
   document.getElementById('mobile-drawer-content').innerHTML = html;
   panel.className = 'mobile-drawer-panel';
-  if (options.panelClass) {
-    panel.classList.add(options.panelClass);
-  }
+  if (options.panelClass) panel.classList.add(options.panelClass);
+  drawer.classList.toggle('drawer-transparent-backdrop', !!options.transparentBackdrop);
   drawer.classList.remove('hidden');
   if (title === '外观') {
-    requestAnimationFrame(() => initAppearancePicker());
+    requestAnimationFrame(() => initAppearanceWheelPicker());
   }
 }
 function closeMobileDrawerSilently() {
-  document.getElementById('mobile-drawer').classList.add('hidden');
+  const drawer = document.getElementById('mobile-drawer');
+  drawer.classList.add('hidden');
+  drawer.classList.remove('drawer-transparent-backdrop');
   document.getElementById('mobile-drawer-content').innerHTML = '';
 }
 function closeMobileDrawer() {
@@ -324,31 +325,129 @@ function closeMobileDrawer() {
 }
 function openMobilePreview() { const modal = document.getElementById('mobile-preview-modal'); const cloneWrap = document.getElementById('mobile-preview-clone'); cloneWrap.innerHTML = ''; const cloned = resumePage.cloneNode(true); cloneWrap.appendChild(cloned); modal.classList.remove('hidden'); }
 function closeMobilePreview() { document.getElementById('mobile-preview-modal').classList.add('hidden'); document.getElementById('mobile-preview-clone').innerHTML = ''; }
-function buildTemplateListHtml() {
-  const currentTemplateName = TEMPLATE_META[state.settings.template].name;
-  const currentThemeName = `${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
+function buildAppearanceWheelHtml() {
+  const currentTemplate = TEMPLATE_META[state.settings.template];
+  const currentTheme = THEME_PRESETS[state.settings.theme];
+  const templateOptions = Object.entries(TEMPLATE_META).map(([key, meta]) => `
+    <button type="button" class="wheel-option ${state.settings.template === key ? 'is-active' : ''}" data-template="${key}">${meta.name}</button>
+  `).join('');
+  const themeOptions = Object.entries(THEME_PRESETS).map(([key, preset]) => `
+    <button type="button" class="wheel-option wheel-theme-option ${state.settings.theme === key ? 'is-active' : ''}" data-theme="${key}">
+      <span class="theme-dot" style="--dot:${preset.accent};--dot-soft:${preset.soft || 'rgba(148,163,184,.18)'};"></span>
+      <span>${preset.name} ${preset.zhName}</span>
+    </button>
+  `).join('');
   return `
-    <div class="appearance-select-sheet">
-      <div class="appearance-current">当前：${currentTemplateName} · ${currentThemeName}</div>
-      <div class="appearance-select-grid">
-        <label class="appearance-select-field">
-          <span>模板</span>
-          <select id="mobile-template-select">
-            ${Object.entries(TEMPLATE_META).map(([key, meta]) => `<option value="${key}" ${state.settings.template === key ? 'selected' : ''}>${meta.name}</option>`).join('')}
-          </select>
-        </label>
-        <label class="appearance-select-field">
-          <span>主题</span>
-          <select id="mobile-theme-select">
-            ${Object.entries(THEME_PRESETS).map(([key, preset]) => `<option value="${key}" ${state.settings.theme === key ? 'selected' : ''}>${preset.name} ${preset.zhName}</option>`).join('')}
-          </select>
-        </label>
+    <div class="appearance-wheel-sheet">
+      <div class="appearance-current" data-appearance-current>当前：${currentTemplate?.name || ''} · ${currentTheme ? `${currentTheme.name} ${currentTheme.zhName}` : ''}</div>
+      <div class="appearance-wheel-labels"><span>模板</span><span>主题</span></div>
+      <div class="mobile-wheel-picker" data-appearance-wheel>
+        <div class="wheel-column" data-wheel-type="template">
+          <div class="wheel-spacer" aria-hidden="true"></div>
+          ${templateOptions}
+          <div class="wheel-spacer" aria-hidden="true"></div>
+        </div>
+        <div class="wheel-column" data-wheel-type="theme">
+          <div class="wheel-spacer" aria-hidden="true"></div>
+          ${themeOptions}
+          <div class="wheel-spacer" aria-hidden="true"></div>
+        </div>
+        <div class="wheel-center-indicator" aria-hidden="true"></div>
       </div>
-      <p class="appearance-select-note">模板决定结构，主题决定颜色。</p>
+      <p class="appearance-note">上下滑动选择，停下后自动吸附到中间。</p>
     </div>`;
 }
-function initAppearancePicker() {}
 
+function updateAppearanceWheelCurrent() {
+  const current = document.querySelector('[data-appearance-current]');
+  if (!current) return;
+  const templateName = TEMPLATE_META[state.settings.template]?.name || '';
+  const theme = THEME_PRESETS[state.settings.theme];
+  const themeName = theme ? `${theme.name} ${theme.zhName}` : '';
+  current.textContent = `当前：${templateName} · ${themeName}`;
+}
+function updateWheelOptionClasses(column, activeOption) {
+  const items = Array.from(column.querySelectorAll('.wheel-option'));
+  const activeIndex = items.indexOf(activeOption);
+  items.forEach((item, index) => {
+    item.classList.remove('is-active', 'is-near');
+    const distance = Math.abs(index - activeIndex);
+    if (distance === 0) item.classList.add('is-active');
+    else if (distance === 1) item.classList.add('is-near');
+  });
+}
+function getCenteredWheelOption(column) {
+  const items = Array.from(column.querySelectorAll('.wheel-option'));
+  if (!items.length) return null;
+  const rect = column.getBoundingClientRect();
+  const centerY = rect.top + rect.height / 2;
+  let nearest = items[0];
+  let nearestDistance = Infinity;
+  items.forEach((item) => {
+    const itemRect = item.getBoundingClientRect();
+    const itemCenter = itemRect.top + itemRect.height / 2;
+    const distance = Math.abs(itemCenter - centerY);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = item;
+    }
+  });
+  return nearest;
+}
+function applyAppearanceSelection(next) {
+  if (next.template) state.settings.template = next.template;
+  if (next.theme) {
+    state.settings.theme = next.theme;
+    state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
+  }
+  applySettings();
+  renderEditor();
+  renderThemePresets();
+  renderPreview();
+  updateTemplateThemeSummary();
+  updateEditorMobileSummary();
+  updateAppearanceWheelCurrent();
+  saveState();
+}
+function snapWheelColumn(column) {
+  const active = getCenteredWheelOption(column);
+  if (!active) return;
+  const top = active.offsetTop - column.clientHeight / 2 + active.offsetHeight / 2;
+  column.scrollTo({ top, behavior: 'smooth' });
+  updateWheelOptionClasses(column, active);
+  const type = column.dataset.wheelType;
+  const key = type === 'template' ? active.dataset.template : active.dataset.theme;
+  if (type === 'template') applyAppearanceSelection({ template: key });
+  if (type === 'theme') applyAppearanceSelection({ theme: key });
+}
+function initAppearanceWheelPicker() {
+  const columns = document.querySelectorAll('.wheel-column');
+  columns.forEach((column) => {
+    const type = column.dataset.wheelType;
+    const currentKey = type === 'template' ? state.settings.template : state.settings.theme;
+    const current = column.querySelector(type === 'template' ? `.wheel-option[data-template="${currentKey}"]` : `.wheel-option[data-theme="${currentKey}"]`);
+    if (current) {
+      const top = current.offsetTop - column.clientHeight / 2 + current.offsetHeight / 2;
+      column.scrollTo({ top, behavior: 'auto' });
+      updateWheelOptionClasses(column, current);
+    }
+    let timer = null;
+    column.onscroll = () => {
+      const centered = getCenteredWheelOption(column);
+      if (centered) updateWheelOptionClasses(column, centered);
+      clearTimeout(timer);
+      timer = setTimeout(() => snapWheelColumn(column), 120);
+    };
+  });
+}
+function updateTemplateThemeSummary() {
+  const current = document.querySelector('[data-appearance-current]');
+  if (!current) return;
+  const templateName = TEMPLATE_META[state.settings.template]?.name || '';
+  const theme = THEME_PRESETS[state.settings.theme];
+  const themeName = theme ? `${theme.name} ${theme.zhName}` : '';
+  current.textContent = `当前：${templateName} · ${themeName}`;
+}
 function buildMobileModuleOrderHtml() {
   const defs = moduleDefs();
   return `<div class="section-actions" style="display:grid;gap:10px;">
@@ -418,7 +517,7 @@ document.addEventListener('click', (e) => {
 
   // 其他点击事件
   if (e.target.id === 'scroll-preview-btn') previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (e.target.id === 'mobile-template-btn') openMobileDrawer('模板与主题', buildTemplateListHtml(), { panelClass: 'appearance-drawer-panel' });
+  if (e.target.id === 'mobile-template-btn') openMobileDrawer('外观', buildAppearanceWheelHtml(), { panelClass: 'appearance-drawer-panel', transparentBackdrop: true });
   if (e.target.id === 'mobile-preview-btn') openMobilePreview();
   if (e.target.id === 'mobile-export-btn') exportPDF();
   if (e.target.id === 'mobile-more-btn') openMobileDrawer('更多', buildMoreMenuHtml());
@@ -432,7 +531,7 @@ document.addEventListener('click', (e) => {
   }
   if (e.target.id === 'mobile-preview-close') closeMobilePreview();
   if (e.target.id === 'mobile-preview-export') exportPDF();
-  if (e.target.id === 'editor-mobile-change-template') openMobileDrawer('模板与主题', buildTemplateListHtml(), { panelClass: 'appearance-drawer-panel' });
+  if (e.target.id === 'editor-mobile-change-template') openMobileDrawer('外观', buildAppearanceWheelHtml(), { panelClass: 'appearance-drawer-panel', transparentBackdrop: true });
 
   const mobileModulePill = e.target.closest('[data-mobile-toggle-module]');
   if (mobileModulePill) {
@@ -450,33 +549,6 @@ document.addEventListener('click', (e) => {
 });
 window.addEventListener('change', (e) => {
   const t = e.target, action = t.dataset.action;
-  if (t.id === 'mobile-template-select') {
-    state.settings.template = t.value;
-    applySettings();
-    renderEditor();
-    renderPreview();
-    updateEditorMobileSummary();
-    saveState();
-    const current = document.querySelector('.appearance-current');
-    if (current) {
-      current.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
-    }
-    return;
-  }
-  if (t.id === 'mobile-theme-select') {
-    state.settings.theme = t.value;
-    state.settings.themeColor = THEME_PRESETS[state.settings.theme].accent;
-    applySettings();
-    renderThemePresets();
-    renderPreview();
-    updateEditorMobileSummary();
-    saveState();
-    const current = document.querySelector('.appearance-current');
-    if (current) {
-      current.textContent = `当前：${TEMPLATE_META[state.settings.template].name} · ${THEME_PRESETS[state.settings.theme].name} ${THEME_PRESETS[state.settings.theme].zhName}`;
-    }
-    return;
-  }
   if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; }
   if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; }
   if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; }
