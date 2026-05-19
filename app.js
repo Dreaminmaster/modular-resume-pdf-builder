@@ -43,10 +43,10 @@ function createField(label, value = '', visible = true, placeholder = '') { retu
 function createBullet(value = '', visible = true) { return { value, visible }; }
 function uid(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 9); }
 function text(v) { return (v || '').toString().trim(); }
-function isFieldVisible(field) { return !!field && field.visible && text(field.value) !== ''; }
+function isFieldVisible(field) { return !!field && field.visible !== false && text(field.value) !== ''; }
 function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function nl2br(str) { return str.replace(/\n/g, '<br>'); }
-function visibleBullets(item) { return (item.bullets || []).filter(b => b.visible && text(b.value)); }
+function visibleBullets(item) { return (item.bullets || []).filter(b => item.visible !== false && b.visible !== false && text(b.value)); }
 function safeArray(v) { return Array.isArray(v) ? v : []; }
 
 function createEducationItem() { return { id: uid('edu'), visible: true, school: createField('学校', '', true, '例如：同济大学'), degree: createField('学历/学位', '', true, '例如：硕士 / 本科'), major: createField('专业', '', true, '例如：机械工程'), date: createField('时间', '', true, '例如：2021.09 - 2024.06'), location: createField('地点', '', true, '例如：上海'), bullets: [createBullet('', true)] }; }
@@ -290,10 +290,42 @@ function importJsonResume(data) { state = defaultState(); const b = data.basics 
 function getPreviewOrder(template) { let manual = normalizeOrder(state.settings.moduleOrder).filter(k => k !== 'personalInfo'); if (template === 'engineering') return [...['projects', 'skills', 'internships', 'achievements', 'education'].filter(k => manual.includes(k)), ...manual.filter(k => !['projects', 'skills', 'internships', 'achievements', 'education'].includes(k))]; if (template === 'engineering-project') return [...['education', 'skills', 'projects', 'internships', 'achievements', 'awards', 'certificates'].filter(k => manual.includes(k)), ...manual.filter(k => !['education', 'skills', 'projects', 'internships', 'achievements', 'awards', 'certificates'].includes(k))]; if (template === 'academic') return [...['education', 'research', 'achievements', 'awards', 'languages'].filter(k => manual.includes(k)), ...manual.filter(k => !['education', 'research', 'achievements', 'awards', 'languages'].includes(k))]; if (template === 'product') return [...['projects', 'internships', 'skills', 'links', 'education'].filter(k => manual.includes(k)), ...manual.filter(k => !['projects', 'internships', 'skills', 'links', 'education'].includes(k))]; if (template === 'compact-cn') return [...['education', 'internships', 'projects', 'skills', 'awards', 'certificates', 'links'].filter(k => manual.includes(k)), ...manual.filter(k => !['education', 'internships', 'projects', 'skills', 'awards', 'certificates', 'links'].includes(k))]; if (template === 'ats-en') return [...['summary', 'education', 'internships', 'projects', 'skills', 'awards', 'links'].filter(k => manual.includes(k)), ...manual.filter(k => !['summary', 'education', 'internships', 'projects', 'skills', 'awards', 'links'].includes(k))]; if (template === 'en-minimal') { manual = [...['education', 'internships', 'projects', 'skills', 'languages', 'achievements'].filter(k => manual.includes(k)), ...manual.filter(k => !['education', 'internships', 'projects', 'skills', 'languages', 'achievements'].includes(k))]; const mapped = []; let inserted = false; manual.forEach(k => { if (EXPERIENCE_KEYS.includes(k)) { if (!inserted) { mapped.push('experience'); inserted = true; } } else mapped.push(k); }); return mapped; } return manual; }
 function findDef(key) { return BASE_MODULE_DEFS.find(d => d.key === key); }
 function previewTitle(key) { if (key === 'experience') return state.settings.languageMode === 'zh' ? '经历' : state.settings.languageMode === 'bilingual' ? '经历 / Experience' : 'Experience'; const def = findDef(key); return def ? moduleTitle(def) : key; }
-function firstVisible(item, keys) { for (const key of keys) { const field = item[key]; if (isFieldVisible(field)) return field.value.trim(); } return ''; }
-function itemHasVisibleContent(item) { return Object.values(item).some(v => v && typeof v === 'object' && 'value' in v && isFieldVisible(v)) || visibleBullets(item).length > 0; }
+function firstVisible(item, keys) {
+  if (!item || item.visible === false) return '';
+  for (const key of keys) {
+    const field = item[key];
+    if (isFieldVisible(field)) return field.value.trim();
+  }
+  return '';
+}
+function itemHasVisibleContent(item) {
+  if (!item || item.visible === false) return false;
+  return Object.values(item).some(v => v && typeof v === 'object' && 'value' in v && isFieldVisible(v)) || visibleBullets(item).length > 0;
+}
 function renderEntry(item) { const title = firstVisible(item, ['name', 'title', 'school', 'language']) || ''; const subtitle = [firstVisible(item, ['role', 'degree', 'type']), firstVisible(item, ['org', 'major', 'issuer', 'status'])].filter(Boolean).join(' · '); const date = firstVisible(item, ['date', 'level']) || ''; const location = firstVisible(item, ['location']) || ''; const bullets = visibleBullets(item); return `<div class="entry html2pdf__page-break-inside"><div class="entry-header"><div><div class="entry-title">${escapeHtml(title)}</div>${subtitle ? `<div class="entry-subtitle">${escapeHtml(subtitle)}</div>` : ''}${location ? `<div class="helper-text">${escapeHtml(location)}</div>` : ''}</div>${date ? `<div class="entry-date">${escapeHtml(date)}</div>` : ''}</div>${bullets.length ? `<ul>${bullets.map(b => `<li>${nl2br(escapeHtml(b.value))}</li>`).join('')}</ul>` : ''}</div>`; }
-function renderSkills(items) { const chips = []; const rows = []; items.forEach(item => { const category = firstVisible(item, ['category']); const content = firstVisible(item, ['content']); if (category && content) rows.push(`<div class="entry"><span class="entry-title">${escapeHtml(category)}：</span>${escapeHtml(content)}</div>`); else if (content) chips.push(...content.split(/[,，、]/).map(s => s.trim()).filter(Boolean)); }); return rows.length ? rows.join('') : `<div class="chips">${chips.map(c => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</div>`; }
+function renderSkills(items) {
+  const rows = [];
+  const chips = [];
+  items.forEach(item => {
+    if (!item || item.visible === false) return;
+    const category = firstVisible(item, ['category']);
+    const content = firstVisible(item, ['content']);
+    if (category && content) {
+      rows.push(`<div class="entry"><span class="entry-title">${escapeHtml(category)}：</span>${escapeHtml(content)}</div>`);
+      return;
+    }
+    if (category && !content) {
+      rows.push(`<div class="entry"><span class="entry-title">${escapeHtml(category)}</span></div>`);
+      return;
+    }
+    if (!category && content) {
+      rows.push(`<div class="entry">${escapeHtml(content)}</div>`);
+      return;
+    }
+  });
+  if (rows.length) return rows.join('');
+  return chips.length ? `<div class="chips">${chips.map(c => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</div>` : '';
+}
 function renderLanguages(items) { return `<div class="plain-list">${items.map(item => { const l = firstVisible(item, ['language']); const lv = firstVisible(item, ['level']); return l || lv ? `<div><span class="entry-title">${escapeHtml(l)}</span>${lv ? `：${escapeHtml(lv)}` : ''}</div>` : ''; }).join('')}</div>`; }
 function renderLinks(items) { return `<div class="plain-list">${items.map(item => { const t = firstVisible(item, ['title']); const u = firstVisible(item, ['url']); const d = firstVisible(item, ['desc']); if (!t && !u && !d) return ''; const maybeLink = u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(u)}</a>` : ''; return `<div><span class="entry-title">${escapeHtml(t || u || 'Link')}</span>${u ? ` — ${maybeLink}` : ''}${d ? ` · ${escapeHtml(d)}` : ''}</div>`; }).join('')}</div>`; }
 function renderListModule(key) { const mod = state.modules[key]; if (!mod || !mod.visible) return ''; const items = mod.items.filter(item => item.visible && itemHasVisibleContent(item)); if (!items.length) return ''; const title = previewTitle(key); if (key === 'skills') return `<section class="resume-section"><div class="section-title">${title}</div>${renderSkills(items)}</section>`; if (key === 'languages') return `<section class="resume-section"><div class="section-title">${title}</div>${renderLanguages(items)}</section>`; if (key === 'links') return `<section class="resume-section"><div class="section-title">${title}</div>${renderLinks(items)}</section>`; return `<section class="resume-section html2pdf__page-break-inside"><div class="section-title">${title}</div>${items.map(renderEntry).join('')}</section>`; }
