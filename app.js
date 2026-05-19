@@ -127,6 +127,12 @@ function updateModuleStatusIndicators() {
   });
 }
 function updatePreviewOnly() { renderPreview(); updateModuleStatusIndicators(); saveState(); }
+function updateVisibilityOnly() {
+  renderPreview();
+  updateModuleStatusIndicators();
+  updateEditorMobileSummary();
+  saveState();
+}
 function setModuleVisibility(moduleKey, visible) {
   if (!state.modules[moduleKey]) return;
   state.modules[moduleKey].visible = visible;
@@ -549,7 +555,7 @@ document.addEventListener('click', (e) => {
 });
 window.addEventListener('change', (e) => {
   const t = e.target, action = t.dataset.action;
-  if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; updateVisibilityOnly(); return; }
+  if (action === 'toggle-module') { state.modules[t.dataset.module].visible = t.checked; refreshModuleVisibilityStructure(); return; }
   if (action === 'toggle-item') { getItem(t.dataset.module, t.dataset.item).visible = t.checked; updateVisibilityOnly(); return; }
   if (action === 'toggle-field') { if (t.dataset.item) getItem(t.dataset.module, t.dataset.item)[t.dataset.field].visible = t.checked; else state.modules[t.dataset.module].fields[t.dataset.field].visible = t.checked; updateVisibilityOnly(); return; }
   if (action === 'toggle-bullet') { getItem(t.dataset.module, t.dataset.item).bullets[Number(t.dataset.bullet)].visible = t.checked; updateVisibilityOnly(); return; }

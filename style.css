@@ -796,7 +796,24 @@ input[type="range"] { width: 100%; }
   .mobile-drawer {
     display: block; position: fixed; inset: 0; background: rgba(15,23,42,0.36); z-index: 60;
   }
+  .mobile-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+  }
   .mobile-drawer.hidden { display: none; }
+  .mobile-drawer.drawer-transparent-backdrop {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .mobile-drawer.drawer-transparent-backdrop .mobile-drawer-backdrop {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    opacity: 1 !important;
+    pointer-events: none;
+  }
   .mobile-drawer-panel {
     position: absolute;
     left: 0;
